@@ -2,7 +2,8 @@
     "name": "TextTween.Editor",
     "rootNamespace": "TextTween",
     "references": [
-        "GUID:999262d7d7e04288bc6aebef915dc2b8"
+        "GUID:999262d7d7e04288bc6aebef915dc2b8",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [
         "Editor"

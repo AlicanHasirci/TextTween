@@ -1,58 +1,70 @@
-using UnityEditor;
-
 namespace TextTween.Editor {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using TMPro;
+    using UnityEditor;
+
     [CustomEditor(typeof(TweenManager))]
-    public class TextTweenEditor : UnityEditor.Editor {
-        private TweenManager _tweenManager;
-        
-        private SerializedProperty _progressProperty;
-        private SerializedProperty _offsetProperty;
-        private SerializedProperty _textsProperty;
-        private SerializedProperty _modifiersProperty;
-        
+    public class TextTweenEditor : Editor {
+        private float _progress;
+        private float _offset;
+        private readonly List<TMP_Text> _texts = new();
+        private readonly List<CharModifier> _modifiers = new();
+
+        private static readonly Lazy<FieldInfo> TextField = new(() => typeof(TweenManager).GetField("_texts", 
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
+
+        private static readonly Lazy<FieldInfo> ModifiersField = new(() => typeof(TweenManager).GetField("_modifiers", 
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
+
         private void OnEnable() {
-            _tweenManager = (TweenManager) target;
-            
-            _progressProperty = serializedObject.FindProperty("Progress");
-            _offsetProperty = serializedObject.FindProperty("Offset");
-            _textsProperty = serializedObject.FindProperty("_texts");
-            _modifiersProperty = serializedObject.FindProperty("_modifiers");
+            CheckForChanges(target as TweenManager, out _, out _);
         }
 
         public override void OnInspectorGUI() {
-            var createArrays = false;
-            var applyChanges = SliderChanged(_progressProperty, "Progress");
+            base.OnInspectorGUI();
+            TweenManager tweenManager = target as TweenManager;
+            CheckForChanges(tweenManager, out bool createArrays, out bool applyChanges);
 
-            if (SliderChanged(_offsetProperty, "Offset")) {
+            if (createArrays) {
+                tweenManager.Dispose(); 
+                tweenManager.CreateNativeArrays();
+            }
+            if (applyChanges) tweenManager.ForceUpdate();
+        }
+
+        private void CheckForChanges(TweenManager manager, out bool createArrays, out bool applyChanges) {
+            createArrays = false;
+            applyChanges = false;
+            
+            if (manager.Offset != _offset) {
                 createArrays = true;
                 applyChanges = true;
+                _offset = manager.Offset;
             }
-
-            if (PropertyChanged(_textsProperty)) {
+            else if (manager.Progress != _progress) {
+                applyChanges = true;
+                _progress = manager.Progress;
+            } 
+            
+            IReadOnlyList<TMP_Text> texts = TextField.Value.GetValue(manager) as IReadOnlyList<TMP_Text> ?? 
+                                          Array.Empty<TMP_Text>();
+            if (!_texts.SequenceEqual(texts)) {
                 createArrays = true;
                 applyChanges = true;
-            }
-
-            if (PropertyChanged(_modifiersProperty)) {
-                applyChanges = true;
+                _texts.Clear();
+                _texts.AddRange(texts);
             }
             
-            if (createArrays) _tweenManager.Dispose();
-            if (applyChanges) serializedObject.ApplyModifiedProperties();
-            if (createArrays) _tweenManager.CreateNativeArrays();
-            if (applyChanges) _tweenManager.ForceUpdate();
-        }
-
-        private bool SliderChanged(SerializedProperty property, string text) {
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.Slider(property, 0, 1, text);
-            return EditorGUI.EndChangeCheck();
-        }
-
-        private bool PropertyChanged(SerializedProperty property) {
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(property);
-            return EditorGUI.EndChangeCheck();
+            IReadOnlyList<CharModifier> modifiers = ModifiersField.Value.GetValue(manager) as IReadOnlyList<CharModifier> ?? 
+                                                    Array.Empty<CharModifier>();
+            if (!_modifiers.SequenceEqual(modifiers)) {
+                applyChanges = true;
+                _modifiers.Clear();
+                _modifiers.AddRange(modifiers);
+            }
         }
     }
 }
