@@ -84,7 +84,6 @@ namespace TextTween.Modifiers {
 
             public void Execute(int index) {
                 var characterData = _data[index];
-                if (!characterData.IsVisible) return;
                 var vertexOffset = characterData.VertexIndex;
                 var offset = Offset(_vertices, vertexOffset, _pivot);
                 var p = _curve.Evaluate(Remap(_progress, characterData.Interval));

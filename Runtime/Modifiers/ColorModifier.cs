@@ -49,7 +49,6 @@ namespace TextTween.Modifiers {
 
             public void Execute(int index) {
                 var characterData = _data[index];
-                if (!characterData.IsVisible) return;
                 var vertexOffset = characterData.VertexIndex;
                 var p = Remap(_progress, characterData.Interval);
                 var color = _gradient.Evaluate(p);

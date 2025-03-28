@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using TextTween.Native;
 using TMPro;
 using Unity.Collections;
@@ -33,17 +32,18 @@ namespace TextTween {
             ApplyModifiers(Progress);
             TMPro_EventManager.TEXT_CHANGED_EVENT.Add(OnTextChanged);
         }
-
-        public void ForceUpdate() {
-            ApplyModifiers(Progress);
-        }
         
         private void OnDisable() {
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(OnTextChanged);
             Dispose();
         }
 
+        public void ForceUpdate() {
+            ApplyModifiers(Progress);
+        }
+
         private void Update() {
+            if (!Application.isPlaying) return;
             if (Mathf.Approximately(_current, Progress)) return;
             ApplyModifiers(Progress);
         }
@@ -68,16 +68,24 @@ namespace TextTween {
         }
 
         public void  CreateCharDataArray() {
-            var chars = _text.textInfo.characterInfo.Where(info => info.isVisible).ToArray();
+            var characterInfos = _text.textInfo.characterInfo;
+            var charCount = 0;
+            for (var i = 0; i < characterInfos.Length; i++) {
+                if (!characterInfos[i].isVisible) continue;
+                charCount++;
+            }
+            
             if (!_charData.IsCreated)
-                _charData = new NativeArray<CharData>(chars.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                _charData = new NativeArray<CharData>(charCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var totalTime = (_charData.Length - 1) * Offset + 1;
-            var co = Offset / totalTime;
-            var cd = 1 / totalTime;
-            for (var i = 0; i < _charData.Length; i++) {
-                var o = co * i;
-                var time = new float2(o, o + cd);
-                _charData[i] = new CharData(time, chars[i].vertexIndex, 4, chars[i].isVisible);
+            var charOffset = Offset / totalTime;
+            var charDuration = 1 / totalTime;
+            for (int i = 0, j = 0; i < characterInfos.Length; i++) {
+                if (!characterInfos[i].isVisible) continue;
+                var offset = charOffset * j;
+                var time = new float2(offset, offset + charDuration);
+                const int vertexPerChar = 4;
+                _charData[j++] = new CharData(time, characterInfos[i].vertexIndex, vertexPerChar);
             }
 
             var bounds = _text.textBounds;
@@ -85,8 +93,12 @@ namespace TextTween {
         }
 
         private void ApplyModifiers(float progress) {
-            if (!_vertices.IsCreated || !_colors.IsCreated) return;
-            if (_text == null || _text.mesh == null) return;
+            if (!_vertices.IsCreated || !_colors.IsCreated) {
+                throw new Exception("Vertices and Colors must be created before applying modifiers.");
+            }
+            if (_text == null || _text.mesh == null) {
+                throw new Exception("Text must be bound before applying modifiers.");
+            }
             var vertices = new NativeArray<float3>(_vertices, Allocator.TempJob);
             var colors = new NativeArray<float4>(_colors, Allocator.TempJob);
             

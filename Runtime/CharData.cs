@@ -5,13 +5,11 @@ namespace TextTween {
         public float2 Interval { get; }
         public int VertexIndex { get; }
         public int VertexCount { get; }
-        public bool IsVisible { get; }
 
-        public CharData(float2 interval, int vertexIndex, int vertexCount, bool isVisible) {
+        public CharData(float2 interval, int vertexIndex, int vertexCount) {
             Interval = interval;
             VertexIndex = vertexIndex;
             VertexCount = vertexCount;
-            IsVisible = isVisible;
         }
 
     }
