@@ -45,7 +45,7 @@ namespace TextTween.Editor {
                 applyChanges = true;
                 _offset = manager.Offset;
             }
-            else if (manager.Progress != _progress) {
+            if (manager.Progress != _progress) {
                 applyChanges = true;
                 _progress = manager.Progress;
             } 
