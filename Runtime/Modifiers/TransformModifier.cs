@@ -31,7 +31,6 @@ namespace TextTween.Modifiers {
         private NativeCurve _nCurve;
         
         public override JobHandle Schedule(
-            float4 bounds,
             float progress,
             NativeArray<float3> vertices,
             NativeArray<float4> colors,

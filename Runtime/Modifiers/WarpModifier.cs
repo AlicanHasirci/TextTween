@@ -12,8 +12,7 @@ namespace TextTween.Modifiers {
         [SerializeField] private AnimationCurve _warpCurve;
         private NativeCurve _nWarpCurve;
         
-        public override JobHandle Schedule(
-            float4 bounds, 
+        public override JobHandle Schedule( 
             float progress, 
             NativeArray<float3> vertices, 
             NativeArray<float4> colors, 
@@ -24,7 +23,6 @@ namespace TextTween.Modifiers {
                 vertices, 
                 charData, 
                 _nWarpCurve, 
-                bounds, 
                 _intensity, 
                 progress)
                 .Schedule(charData.Length, 64, dependency);
@@ -41,19 +39,16 @@ namespace TextTween.Modifiers {
             private readonly NativeCurve _warpCurve;
             private readonly float _intensity;
             private readonly float _progress;
-            private readonly float4 _bounds;
 
             public Job(
                 NativeArray<float3> vertices, 
                 NativeArray<CharData> data, 
-                NativeCurve warpCurve, 
-                float4 bounds, 
+                NativeCurve warpCurve,
                 float intensity, 
                 float progress) {
                 _vertices = vertices;
                 _data = data;
                 _warpCurve = warpCurve;
-                _bounds = bounds;
                 _intensity = intensity;
                 _progress = progress;
             }
@@ -62,8 +57,8 @@ namespace TextTween.Modifiers {
                 var characterData = _data[index];
                 var vertexOffset = characterData.VertexIndex;
                 var offset = Offset(_vertices, vertexOffset, .5f);
-                var width = _bounds.z - _bounds.x;
-                var x = (offset.x - _bounds.x) / width;
+                var width = characterData.Bounds.z - characterData.Bounds.x;
+                var x = (offset.x - characterData.Bounds.x) / width;
                 var p = Remap(_progress, characterData.Interval);
                 var y = _warpCurve.Evaluate(x) * p * _intensity;
                 var v = _warpCurve.Velocity(x);

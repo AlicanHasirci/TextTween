@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using TextTween.Native;
 using TMPro;
 using Unity.Collections;
@@ -14,25 +15,27 @@ namespace TextTween {
         [Range(0, 1f)] public float Progress;
         [Range(0, 1f)] public float Offset;
         
-        [SerializeField] private TMP_Text _text;
+        [SerializeField] private TMP_Text[] _texts;
         [SerializeField] private List<CharModifier> _modifiers;
         
         private NativeArray<CharData> _charData;
         private NativeArray<float3> _vertices;
         private NativeArray<float4> _colors;
         private JobHandle _jobHandle;
-        private float4 _bounds;
         private float _current;
         
         private void OnEnable() {
-            if (_text == null) return;
-            _text.ForceMeshUpdate(true);
+            if (_texts == null || _texts.Length == 0) return;
+            for (var i = 0; i < _texts.Length; i++) {
+                _texts[i].ForceMeshUpdate(true);
+            }
+            
             DisposeArrays();
             CreateNativeArrays();
             ApplyModifiers(Progress);
             TMPro_EventManager.TEXT_CHANGED_EVENT.Add(OnTextChanged);
         }
-        
+
         private void OnDisable() {
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(OnTextChanged);
             Dispose();
@@ -49,78 +52,114 @@ namespace TextTween {
         }
 
         private void OnTextChanged(Object obj) {
-            if (_text != obj) return;
+            var found = false;
+            for (var i = 0; i < _texts.Length; i++) {
+                if (_texts[i] != obj) continue;
+                found = true;
+                break;
+            }
+
+            if (!found) return;
+            
             DisposeArrays();
             CreateNativeArrays();
             ApplyModifiers(Progress);
         }
 
-        private void CreateNativeArrays() {
+        public void CreateNativeArrays() {
             CreateMeshArrays();
             CreateCharDataArray();
         }
 
         private void CreateMeshArrays() {
-            _vertices = new NativeArray<float3>(_text.mesh.vertexCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            _colors = new NativeArray<float4>(_text.mesh.vertexCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            _text.mesh.vertices.MemCpy(_vertices);
-            _text.mesh.colors.MemCpy(_colors);
+            var vertexCount = 0;
+            for (var i = 0; i < _texts.Length; i++) {
+                if (_texts[i] == null) continue;
+                vertexCount += _texts[i].mesh.vertexCount;
+            }
+
+            if (vertexCount == 0) return;
+            
+            _vertices = new NativeArray<float3>(vertexCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            _colors = new NativeArray<float4>(vertexCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            
+            var vertexOffset = 0;
+            for (var i = 0; i < _texts.Length; i++) {
+                var count = _texts[i].mesh.vertexCount; 
+                _texts[i].mesh.vertices.MemCpy(_vertices, vertexOffset, count);
+                _texts[i].mesh.colors.MemCpy(_colors, vertexOffset, count);
+                vertexOffset += count;
+            }
         }
 
         public void  CreateCharDataArray() {
-            var characterInfos = _text.textInfo.characterInfo;
-            var charCount = 0;
-            for (var i = 0; i < characterInfos.Length; i++) {
-                if (!characterInfos[i].isVisible) continue;
-                charCount++;
+            var visibleCharCount = 0;
+            for (var i = 0; i < _texts.Length; i++) {
+                if (_texts[i] == null) continue;
+                visibleCharCount += GetVisibleCharCount(_texts[i]);
             }
             
-            if (!_charData.IsCreated)
-                _charData = new NativeArray<CharData>(charCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            var totalTime = (_charData.Length - 1) * Offset + 1;
-            var charOffset = Offset / totalTime;
-            var charDuration = 1 / totalTime;
-            for (int i = 0, j = 0; i < characterInfos.Length; i++) {
-                if (!characterInfos[i].isVisible) continue;
-                var offset = charOffset * j;
-                var time = new float2(offset, offset + charDuration);
-                const int vertexPerChar = 4;
-                _charData[j++] = new CharData(time, characterInfos[i].vertexIndex, vertexPerChar);
+            if (visibleCharCount == 0) return;
+            if (_charData.IsCreated)
+                _charData.Dispose();
+            _charData = new NativeArray<CharData>(visibleCharCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            
+            var indexOffset = 0;
+            for (int i = 0, k = 0; i < _texts.Length; i++) {
+                var text = _texts[i];
+                if (text == null) continue;
+                var charCount = GetVisibleCharCount(_texts[i]);
+                var characterInfos = text.textInfo.characterInfo;
+                var totalTime = (charCount - 1) * Offset + 1;
+                var charOffset = Offset / totalTime;
+                var charDuration = 1 / totalTime;
+                var bounds = new float4(text.textBounds.min.x, text.textBounds.min.y, text.textBounds.max.x, text.textBounds.max.y);
+                for (int j = 0, l = 0; j < characterInfos.Length; j++) {
+                    if (!characterInfos[j].isVisible) continue;
+                    var offset = charOffset * l;
+                    var time = new float2(offset, offset + charDuration);
+                    const int vertexPerChar = 4;
+                    _charData[k] = new CharData(time, indexOffset + characterInfos[j].vertexIndex, vertexPerChar, bounds);
+                    k++;
+                    l++;
+                }
+                indexOffset = text.mesh.vertexCount;
             }
-
-            var bounds = _text.textBounds;
-            _bounds = new float4(bounds.min.x, bounds.min.y, bounds.max.x, bounds.max.y);
         }
 
         private void ApplyModifiers(float progress) {
             if (!_vertices.IsCreated || !_colors.IsCreated) {
-                throw new Exception("Vertices and Colors must be created before applying modifiers.");
+                throw new Exception("Must have valid texts to apply modifiers.");
             }
-            if (_text == null || _text.mesh == null) {
-                throw new Exception("Text must be bound before applying modifiers.");
-            }
+            
             var vertices = new NativeArray<float3>(_vertices, Allocator.TempJob);
             var colors = new NativeArray<float4>(_colors, Allocator.TempJob);
             
             for (var i = 0; i < _modifiers.Count; i++) {
                 if (_modifiers[i] == null) continue;
-                _jobHandle = _modifiers[i].Schedule(_bounds, progress, vertices, colors, _charData, _jobHandle);
+                _jobHandle = _modifiers[i].Schedule(progress, vertices, colors, _charData, _jobHandle);
             }
-
+            
             _jobHandle.Complete();
-
-            if (_text.mesh != null) {
-                _text.mesh.SetVertices(vertices);
-                _text.mesh.SetColors(colors);
-                var meshInfos = _text.textInfo.meshInfo;
-                for (var i = 0; i < meshInfos.Length; i++) {
-                    meshInfos[i].colors32 = _text.mesh.colors32;
-                    meshInfos[i].vertices = _text.mesh.vertices;
+            var offset = 0;
+            for (var i = 0; i < _texts.Length; i++) {
+                var text = _texts[i];
+                if (text.mesh == null) continue;
+                var count = text.mesh.vertexCount;
+                text.mesh.SetVertices(vertices, offset, count);
+                text.mesh.SetColors(colors, offset, count);
+                offset += count;
+                
+                var meshInfos = text.textInfo.meshInfo;
+                for (var j = 0; j < meshInfos.Length; j++) {
+                    meshInfos[j].colors32 = text.mesh.colors32;
+                    meshInfos[j].vertices = text.mesh.vertices;
                 }
-
-                _text.UpdateVertexData((TMP_VertexDataUpdateFlags) 17);
+            
+                text.UpdateVertexData((TMP_VertexDataUpdateFlags) 17);
             }
-
+            
+            
             _current = Progress;
             vertices.Dispose();
             colors.Dispose();
@@ -135,6 +174,17 @@ namespace TextTween {
             if (_charData.IsCreated) _charData.Dispose();
             if (_vertices.IsCreated) _vertices.Dispose();
             if (_colors.IsCreated) _colors.Dispose();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetVisibleCharCount(TMP_Text text) {
+            var count = 0;
+            var characterInfos = text.textInfo.characterInfo;
+            for (var j = 0; j < characterInfos.Length; j++) {
+                if (!characterInfos[j].isVisible) continue;
+                count++;
+            }
+            return count;
         }
     }
 }

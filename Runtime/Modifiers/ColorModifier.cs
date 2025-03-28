@@ -10,8 +10,7 @@ namespace TextTween.Modifiers {
         [SerializeField] private Gradient _gradient;
         private NativeGradient _nativeGradient;
 
-        public override JobHandle Schedule(
-            float4 bounds, 
+        public override JobHandle Schedule( 
             float progress, 
             NativeArray<float3> vertices, 
             NativeArray<float4> colors, 
