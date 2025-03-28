@@ -141,6 +141,15 @@ namespace TextTween {
             }
             
             _jobHandle.Complete();
+            
+            UpdateMeshes(vertices, colors);
+
+            _current = Progress;
+            vertices.Dispose();
+            colors.Dispose();
+        }
+
+        private void UpdateMeshes(NativeArray<float3> vertices, NativeArray<float4> colors) {
             var offset = 0;
             for (var i = 0; i < _texts.Length; i++) {
                 var text = _texts[i];
@@ -158,11 +167,6 @@ namespace TextTween {
             
                 text.UpdateVertexData((TMP_VertexDataUpdateFlags) 17);
             }
-            
-            
-            _current = Progress;
-            vertices.Dispose();
-            colors.Dispose();
         }
 
         public void Dispose() {
@@ -171,9 +175,14 @@ namespace TextTween {
 
         private void DisposeArrays() {
             _jobHandle.Complete();
-            if (_charData.IsCreated) _charData.Dispose();
-            if (_vertices.IsCreated) _vertices.Dispose();
-            if (_colors.IsCreated) _colors.Dispose();
+            if (_charData.IsCreated) {
+                _charData.Dispose();
+            }
+            if (_vertices.IsCreated && _colors.IsCreated) {
+                UpdateMeshes(_vertices, _colors);
+                _vertices.Dispose();
+                _colors.Dispose();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

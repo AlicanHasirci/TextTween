@@ -3,14 +3,15 @@ using UnityEditor;
 namespace TextTween.Editor {
     [CustomEditor(typeof(TweenManager))]
     public class TextTweenEditor : UnityEditor.Editor {
-        private TweenManager tweenManager;
+        private TweenManager _tweenManager;
+        
         private SerializedProperty _progressProperty;
         private SerializedProperty _offsetProperty;
         private SerializedProperty _textsProperty;
         private SerializedProperty _modifiersProperty;
         
         private void OnEnable() {
-            tweenManager = (TweenManager) target;
+            _tweenManager = (TweenManager) target;
             
             _progressProperty = serializedObject.FindProperty("Progress");
             _offsetProperty = serializedObject.FindProperty("Offset");
@@ -36,13 +37,10 @@ namespace TextTween.Editor {
                 applyChanges = true;
             }
             
-            
+            if (createArrays) _tweenManager.Dispose();
             if (applyChanges) serializedObject.ApplyModifiedProperties();
-            if (createArrays) {
-                tweenManager.Dispose();
-                tweenManager.CreateNativeArrays();
-            }
-            if (applyChanges) tweenManager.ForceUpdate();
+            if (createArrays) _tweenManager.CreateNativeArrays();
+            if (applyChanges) _tweenManager.ForceUpdate();
         }
 
         private bool SliderChanged(SerializedProperty property, string text) {
