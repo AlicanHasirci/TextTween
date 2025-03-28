@@ -136,7 +136,7 @@ namespace TextTween {
             var colors = new NativeArray<float4>(_colors, Allocator.TempJob);
             
             for (var i = 0; i < _modifiers.Count; i++) {
-                if (_modifiers[i] == null) continue;
+                if (_modifiers[i] == null || !_modifiers[i].enabled) continue;
                 _jobHandle = _modifiers[i].Schedule(progress, vertices, colors, _charData, _jobHandle);
             }
             
