@@ -1,4 +1,18 @@
 {
-  "name": "TextTween.Editor",
-  "references":[ "GUID:999262d7d7e04288bc6aebef915dc2b8" ]
+    "name": "TextTween.Editor",
+    "rootNamespace": "TextTween",
+    "references": [
+        "GUID:999262d7d7e04288bc6aebef915dc2b8"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

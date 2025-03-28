@@ -1,7 +1,8 @@
 {
-  "name": "rocks.alican.texttween",
+  "name": "com.alicanhasirci.texttween",
   "author": "Alican HASIRCI",
   "displayName": "Text Tween",
+  "description": "A small library to animate TMP texts",
   "version": "1.0.0",
   "unity": "6000.0",
   "category": "Unity",
@@ -9,8 +10,19 @@
     "textmeshpro",
     "text",
     "tween",
+    "jobs",
+    "burst",
     "mesh",
     "modifiers"
   ],
-  "description": "A small library to animate TMP texts"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlicanHasirci/TextTween.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AlicanHasirci/TextTween/issues"
+  },
+  "homepage": "https://github.com/AlicanHasirci/TextTween/#readme",
+  "main": "README.md"
 }

@@ -33,6 +33,10 @@ namespace TextTween {
             ApplyModifiers(Progress);
             TMPro_EventManager.TEXT_CHANGED_EVENT.Add(OnTextChanged);
         }
+
+        public void ForceUpdate() {
+            ApplyModifiers(Progress);
+        }
         
         private void OnDisable() {
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(OnTextChanged);

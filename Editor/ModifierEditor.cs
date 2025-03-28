@@ -6,9 +6,8 @@ namespace TextTween.Editor {
         public override void OnInspectorGUI() {
             EditorGUI.BeginChangeCheck();
             base.OnInspectorGUI();
-            if (EditorGUI.EndChangeCheck()) {
-                ((CharModifier)target).Dispose();
-            }
+            if (!EditorGUI.EndChangeCheck()) return;
+            ((CharModifier)target).Dispose();
         }
     }
 }
