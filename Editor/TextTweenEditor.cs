@@ -21,24 +21,25 @@ namespace TextTween.Editor {
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
 
         private void OnEnable() {
-            CheckForChanges(target as TweenManager, out _, out _);
+            CheckForChanges(target as TweenManager, out _, out _, out _);
         }
 
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
             TweenManager tweenManager = target as TweenManager;
-            CheckForChanges(tweenManager, out bool createArrays, out bool applyChanges);
+            CheckForChanges(tweenManager, out bool createArrays, out bool applyChanges,  out IReadOnlyList<TMP_Text> oldTexts);
 
             if (createArrays) {
-                tweenManager.Dispose(); 
+                tweenManager.Dispose(oldTexts); 
                 tweenManager.CreateNativeArrays();
             }
             if (applyChanges) tweenManager.ForceUpdate();
         }
 
-        private void CheckForChanges(TweenManager manager, out bool createArrays, out bool applyChanges) {
+        private void CheckForChanges(TweenManager manager, out bool createArrays, out bool applyChanges, out IReadOnlyList<TMP_Text> oldTexts) {
             createArrays = false;
             applyChanges = false;
+            oldTexts = _texts;
             
             if (manager.Offset != _offset) {
                 createArrays = true;
@@ -55,6 +56,7 @@ namespace TextTween.Editor {
             if (!_texts.SequenceEqual(texts)) {
                 createArrays = true;
                 applyChanges = true;
+                oldTexts = _texts.ToArray();
                 _texts.Clear();
                 _texts.AddRange(texts);
             }

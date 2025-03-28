@@ -30,7 +30,7 @@ namespace TextTween {
                 _texts[i].ForceMeshUpdate(true);
             }
             
-            DisposeArrays();
+            DisposeArrays(_texts);
             CreateNativeArrays();
             ApplyModifiers(Progress);
             TMPro_EventManager.TEXT_CHANGED_EVENT.Add(OnTextChanged);
@@ -61,7 +61,7 @@ namespace TextTween {
 
             if (!found) return;
             
-            DisposeArrays();
+            DisposeArrays(_texts);
             CreateNativeArrays();
             ApplyModifiers(Progress);
         }
@@ -142,17 +142,17 @@ namespace TextTween {
             
             _jobHandle.Complete();
             
-            UpdateMeshes(vertices, colors);
+            UpdateMeshes(_texts, vertices, colors);
 
             _current = Progress;
             vertices.Dispose();
             colors.Dispose();
         }
 
-        private void UpdateMeshes(NativeArray<float3> vertices, NativeArray<float4> colors) {
+        private void UpdateMeshes(IReadOnlyList<TMP_Text> texts, NativeArray<float3> vertices, NativeArray<float4> colors) {
             var offset = 0;
-            for (var i = 0; i < _texts.Length; i++) {
-                var text = _texts[i];
+            for (var i = 0; i < texts.Count; i++) {
+                var text = texts[i];
                 if (text.mesh == null) continue;
                 var count = text.mesh.vertexCount;
                 text.mesh.SetVertices(vertices, offset, count);
@@ -170,16 +170,21 @@ namespace TextTween {
         }
 
         public void Dispose() {
-            DisposeArrays();
+            Dispose(_texts);
+        }
+        
+        
+        public void Dispose(IReadOnlyList<TMP_Text> texts) {
+            DisposeArrays(texts);
         }
 
-        private void DisposeArrays() {
+        private void DisposeArrays(IReadOnlyList<TMP_Text> texts) {
             _jobHandle.Complete();
             if (_charData.IsCreated) {
                 _charData.Dispose();
             }
             if (_vertices.IsCreated && _colors.IsCreated) {
-                UpdateMeshes(_vertices, _colors);
+                UpdateMeshes(texts, _vertices, _colors);
                 _vertices.Dispose();
                 _colors.Dispose();
             }
