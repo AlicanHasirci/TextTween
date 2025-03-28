@@ -1,4 +1,5 @@
 namespace TextTween.Editor {
+#if UNITY_EDITOR
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -67,4 +68,5 @@ namespace TextTween.Editor {
             }
         }
     }
+#endif
 }
