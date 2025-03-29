@@ -164,8 +164,8 @@ namespace TextTween {
                     meshInfos[j].colors32 = text.mesh.colors32;
                     meshInfos[j].vertices = text.mesh.vertices;
                 }
-            
-                text.UpdateVertexData((TMP_VertexDataUpdateFlags) 17);
+
+                text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32 | TMP_VertexDataUpdateFlags.Vertices);
             }
         }
 
