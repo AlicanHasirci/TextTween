@@ -5,22 +5,31 @@ using Unity.Mathematics;
 using UnityEngine;
 using static Unity.Mathematics.math;
 
-namespace TextTween.Native {
-    public struct NativeCurve : IDisposable {
+namespace TextTween.Native
+{
+    public struct NativeCurve : IDisposable
+    {
         public bool IsCreated => _values.IsCreated;
 
-        [NativeDisableParallelForRestriction, ReadOnly] private NativeArray<float> _values;
+        [NativeDisableParallelForRestriction, ReadOnly]
+        private NativeArray<float> _values;
         private WrapMode _preWrapMode;
         private WrapMode _postWrapMode;
 
-        private void InitializeValues(int count) {
+        private void InitializeValues(int count)
+        {
             if (_values.IsCreated)
                 _values.Dispose();
 
-            _values = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            _values = new NativeArray<float>(
+                count,
+                Allocator.Persistent,
+                NativeArrayOptions.UninitializedMemory
+            );
         }
 
-        public void Update(AnimationCurve curve, int resolution) {
+        public void Update(AnimationCurve curve, int resolution)
+        {
             curve ??= AnimationCurve.Linear(0, 0, 1, 1);
 
             _preWrapMode = curve.preWrapMode;
@@ -30,10 +39,11 @@ namespace TextTween.Native {
                 InitializeValues(resolution);
 
             for (int i = 0; i < resolution; i++)
-                _values[i] = curve.Evaluate(i / (float) resolution);
+                _values[i] = curve.Evaluate(i / (float)resolution);
         }
 
-        public readonly float Evaluate(float t) {
+        public readonly float Evaluate(float t)
+        {
             var count = _values.Length;
 
             if (count == 1)
@@ -42,7 +52,7 @@ namespace TextTween.Native {
             t = Wrap(t);
 
             var it = t * (count - 1);
-            var lower = (int) it;
+            var lower = (int)it;
             var upper = lower + 1;
             if (upper >= count)
                 upper = count - 1;
@@ -50,12 +60,13 @@ namespace TextTween.Native {
             return lerp(_values[lower], _values[upper], it - lower);
         }
 
-        public readonly float2 Velocity(float t) {
+        public readonly float2 Velocity(float t)
+        {
             var count = _values.Length;
 
             if (count == 1)
                 return new float2(1, 0);
-            
+
             t = Wrap(t);
 
             var d = count - 1;
@@ -69,35 +80,42 @@ namespace TextTween.Native {
             return normalize(new float2(2f / count, _values[upper] - _values[lower]));
         }
 
-        private readonly float Wrap(float t) {
-            t = t switch {
-                < 0f => _preWrapMode switch {
+        private readonly float Wrap(float t)
+        {
+            t = t switch
+            {
+                < 0f => _preWrapMode switch
+                {
                     WrapMode.Loop => 1f - abs(t) % 1f,
                     WrapMode.PingPong => PingPong(t, 1f),
-                    _ => 0
+                    _ => 0,
                 },
-                > 1f => _postWrapMode switch {
+                > 1f => _postWrapMode switch
+                {
                     WrapMode.Loop => t % 1f,
                     WrapMode.PingPong => PingPong(t, 1f),
-                    _ => 1
+                    _ => 1,
                 },
-                _ => t
+                _ => t,
             };
             return t;
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             if (_values.IsCreated)
                 _values.Dispose();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static float Repeat(float t, float length) {
+        private static float Repeat(float t, float length)
+        {
             return clamp(t - floor(t / length) * length, 0, length);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static float PingPong(float t, float length) {
+        private static float PingPong(float t, float length)
+        {
             t = Repeat(t, length * 2f);
             return length - abs(t - length);
         }

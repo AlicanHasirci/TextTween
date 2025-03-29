@@ -8,8 +8,10 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace TextTween.Extensions {
-    public static class EnumExtensions {
+namespace TextTween.Extensions
+{
+    public static class EnumExtensions
+    {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasFlagNoAlloc<T>(this T value, T flag)
             where T : unmanaged, Enum
