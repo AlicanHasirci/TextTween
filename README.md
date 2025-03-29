@@ -57,3 +57,14 @@ Warps the lines of text according to intensity and curve provided over progress.
 
 - Intensity: Amount of displacement
 - Warp Curve: Curve to be used by modifier
+
+## Performance
+
+| Text | Color Modifier Op/s | Transform Modifier Op/s | Warp Modifier Op/s |
+| ---- | ------------------- | ----------------------- | ------------------ |
+| A | 18,459 | 53,887 | 76,252 |
+| Ax10 | 17,105 | 27,607 | 44,653 |
+| Ax100 | 10,412 | 5,461 | 9,936 |
+| Ax1000 | 4,313 | 2,981 | 3,697 |
+| Ax10000 | 372 | 290 | 355 |
+| Ax100000 | 76 | 48 | 59 |

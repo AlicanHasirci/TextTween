@@ -1,16 +1,19 @@
-using TextTween.Native;
-using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine;
-
 namespace TextTween.Modifiers
 {
+    using Native;
+    using Unity.Collections;
+    using Unity.Jobs;
+    using Unity.Mathematics;
+    using UnityEngine;
+    using UnityEngine.Serialization;
+
     [AddComponentMenu("TextTween/Modifiers/Color Modifier")]
     public class ColorModifier : CharModifier
     {
+        [FormerlySerializedAs("_gradient")]
         [SerializeField]
-        private Gradient _gradient;
+        public Gradient Gradient;
+
         private NativeGradient _nativeGradient;
 
         public override JobHandle Schedule(
@@ -21,7 +24,7 @@ namespace TextTween.Modifiers
             JobHandle dependency
         )
         {
-            _nativeGradient.Update(_gradient, 1024);
+            _nativeGradient.Update(Gradient, 1024);
             return new Job(colors, charData, _nativeGradient, progress).Schedule(
                 charData.Length,
                 64,

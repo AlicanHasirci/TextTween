@@ -1,45 +1,46 @@
-using System;
-using TextTween.Extensions;
-using TextTween.Native;
-using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine;
-
 namespace TextTween.Modifiers
 {
+    using System;
+    using Extensions;
+    using Native;
+    using Unity.Collections;
+    using Unity.Jobs;
+    using Unity.Mathematics;
+    using UnityEngine;
+    using UnityEngine.Serialization;
+
+    public enum ModifierType
+    {
+        Position = 0,
+        Rotation = 1,
+        Scale = 2,
+    }
+
+    [Flags]
+    public enum ModifierScale
+    {
+        X = 1 << 0,
+        Y = 1 << 1,
+        Z = 1 << 2,
+    }
+
     [AddComponentMenu("TextTween/Modifiers/Transform Modifier")]
     public class TransformModifier : CharModifier
     {
-        private enum Type
-        {
-            Position,
-            Rotation,
-            Scale,
-        }
+        [FormerlySerializedAs("_curve")]
+        public AnimationCurve Curve;
 
-        [Flags]
-        private enum Scale
-        {
-            X = 1 << 0,
-            Y = 1 << 1,
-            Z = 1 << 2,
-        }
+        [FormerlySerializedAs("_type")]
+        public ModifierType Type;
 
-        [SerializeField]
-        private AnimationCurve _curve;
+        [FormerlySerializedAs("_scale")]
+        public ModifierScale Scale;
 
-        [SerializeField]
-        private Type _type;
+        [FormerlySerializedAs("_intensity")]
+        public float3 Intensity;
 
-        [SerializeField]
-        private Scale _scale;
-
-        [SerializeField]
-        private float3 _intensity;
-
-        [SerializeField]
-        private float2 _pivot;
+        [FormerlySerializedAs("_pivot")]
+        public float2 Pivot;
 
         private NativeCurve _nCurve;
 
@@ -53,16 +54,16 @@ namespace TextTween.Modifiers
         {
             if (!_nCurve.IsCreated)
             {
-                _nCurve.Update(_curve, 1024);
+                _nCurve.Update(Curve, 1024);
             }
             return new Job(
                 vertices,
                 charData,
                 _nCurve,
-                _intensity,
-                _pivot,
-                _type,
-                _scale,
+                Intensity,
+                Pivot,
+                Type,
+                Scale,
                 progress
             ).Schedule(charData.Length, 64, dependency);
         }
@@ -83,8 +84,8 @@ namespace TextTween.Modifiers
             [ReadOnly]
             private NativeArray<CharData> _data;
             private readonly NativeCurve _curve;
-            private readonly Type _type;
-            private readonly Scale _scale;
+            private readonly ModifierType _type;
+            private readonly ModifierScale _scale;
             private readonly float3 _intensity;
             private readonly float2 _pivot;
             private readonly float _progress;
@@ -95,8 +96,8 @@ namespace TextTween.Modifiers
                 NativeCurve curve,
                 float3 intensity,
                 float2 pivot,
-                Type type,
-                Scale scale,
+                ModifierType type,
+                ModifierScale scale,
                 float progress
             )
             {
@@ -120,7 +121,10 @@ namespace TextTween.Modifiers
                 for (int i = 0; i < characterData.VertexCount; i++)
                 {
                     _vertices[vertexOffset + i] -= offset;
-                    _vertices[vertexOffset + i] = math.mul(m, new float4(_vertices[vertexOffset + i], 1)).xyz;
+                    _vertices[vertexOffset + i] = math.mul(
+                        m,
+                        new float4(_vertices[vertexOffset + i], 1)
+                    ).xyz;
                     _vertices[vertexOffset + i] += offset;
                 }
             }
@@ -132,22 +136,22 @@ namespace TextTween.Modifiers
                 float3 fs = 1;
                 switch (_type)
                 {
-                    case Type.Position:
+                    case ModifierType.Position:
                         fp = _intensity * progress;
                         break;
-                    case Type.Rotation:
+                    case ModifierType.Rotation:
                         fr = quaternion.Euler(math.radians(_intensity * progress));
                         break;
-                    case Type.Scale:
-                        if (_scale.HasFlagNoAlloc(Scale.X))
+                    case ModifierType.Scale:
+                        if (_scale.HasFlagNoAlloc(ModifierScale.X))
                         {
                             fs.x = progress * _intensity.x;
                         }
-                        if (_scale.HasFlagNoAlloc(Scale.Y))
+                        if (_scale.HasFlagNoAlloc(ModifierScale.Y))
                         {
                             fs.y = progress * _intensity.y;
                         }
-                        if (_scale.HasFlagNoAlloc(Scale.Z))
+                        if (_scale.HasFlagNoAlloc(ModifierScale.Z))
                         {
                             fs.z = progress * _intensity.z;
                         }

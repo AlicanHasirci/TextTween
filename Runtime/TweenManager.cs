@@ -1,16 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using TextTween.Native;
-using TMPro;
-using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine;
-using Object = UnityEngine.Object;
-
 namespace TextTween
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
+    using Native;
+    using TMPro;
+    using Unity.Collections;
+    using Unity.Jobs;
+    using Unity.Mathematics;
+    using UnityEngine;
+    using Object = UnityEngine.Object;
+
     [AddComponentMenu("TextTween/Tween Manager")]
     [ExecuteInEditMode]
     public class TweenManager : MonoBehaviour, IDisposable
@@ -21,11 +21,25 @@ namespace TextTween
         [Range(0, 1f)]
         public float Offset;
 
+        /*
+            Modification of both _texts and _modifiers at runtime is not supported. But it is extremely useful to be
+            able to modify them from editor scripts as well as from tests. Therefore, conditional access is simplest.
+         */
         [SerializeField]
-        private TMP_Text[] _texts;
+#if UNITY_EDITOR
+        public
+#else
+        private
+#endif
+        TMP_Text[] _texts;
 
         [SerializeField]
-        private List<CharModifier> _modifiers;
+#if UNITY_EDITOR
+        public
+#else
+        private
+#endif
+        List<CharModifier> _modifiers;
 
         private NativeArray<CharData> _charData;
         private NativeArray<float3> _vertices;
@@ -49,6 +63,7 @@ namespace TextTween
             {
                 return;
             }
+<<<<<<< HEAD
             if (!Application.isPlaying)
             {
                 for (int i = 0; i < _texts.Length; i++)
@@ -61,9 +76,20 @@ namespace TextTween
 
                     text.ForceMeshUpdate(true);
                 }
+=======
+
+            for (int i = 0; i < _texts.Length; i++)
+            {
+                TMP_Text text = _texts[i];
+                if (text == null)
+                {
+                    continue;
+                }
+                text.ForceMeshUpdate(true);
+>>>>>>> 9532f27 (Finish performance tests)
             }
 
-            DisposeArrays(_texts);
+            Dispose();
             CreateNativeArrays();
             ApplyModifiers(Progress);
             if (!_eventAdded)
@@ -102,7 +128,12 @@ namespace TextTween
             ApplyModifiers(Progress);
         }
 
-        private void OnTextChanged(Object obj)
+#if UNITY_EDITOR
+        public
+#else
+        private
+#endif
+        void OnTextChanged(Object obj)
         {
             bool found = false;
             for (int i = 0; i < _texts.Length; i++)
@@ -136,11 +167,12 @@ namespace TextTween
             int vertexCount = 0;
             for (int i = 0; i < _texts.Length; i++)
             {
-                if (_texts[i] == null)
+                TMP_Text text = _texts[i];
+                if (text == null)
                 {
                     continue;
                 }
-                vertexCount += _texts[i].mesh.vertexCount;
+                vertexCount += text.mesh.vertexCount;
             }
 
             if (vertexCount == 0)
@@ -168,7 +200,10 @@ namespace TextTween
                     continue;
                 }
                 int count = text.mesh.vertexCount;
+<<<<<<< HEAD
                 _lastKnownVertexCount[text] = count;
+=======
+>>>>>>> 9532f27 (Finish performance tests)
                 text.mesh.vertices.MemCpy(_vertices, vertexOffset, count);
                 text.mesh.colors.MemCpy(_colors, vertexOffset, count);
                 vertexOffset += count;
@@ -180,17 +215,19 @@ namespace TextTween
             int visibleCharCount = 0;
             for (int i = 0; i < _texts.Length; i++)
             {
-                if (_texts[i] == null)
+                TMP_Text text = _texts[i];
+                if (text == null)
                 {
                     continue;
                 }
-                visibleCharCount += GetVisibleCharCount(_texts[i]);
+                visibleCharCount += GetVisibleCharCount(text);
             }
 
             if (visibleCharCount == 0)
             {
                 return;
             }
+
             if (_charData.IsCreated)
             {
                 _charData.Dispose();
@@ -209,7 +246,7 @@ namespace TextTween
                 {
                     continue;
                 }
-                int charCount = GetVisibleCharCount(_texts[i]);
+                int charCount = GetVisibleCharCount(text);
                 TMP_CharacterInfo[] characterInfos = text.textInfo.characterInfo;
                 float totalTime = (charCount - 1) * Offset + 1;
                 float charOffset = Offset / totalTime;
@@ -287,11 +324,14 @@ namespace TextTween
                 }
 
                 int count = text.mesh.vertexCount;
+<<<<<<< HEAD
                 if (text == toIgnore)
                 {
                     offset += _lastKnownVertexCount.GetValueOrDefault(text, count);
                     continue;
                 }
+=======
+>>>>>>> 9532f27 (Finish performance tests)
 
                 text.mesh.SetVertices(vertices, offset, count);
                 text.mesh.SetColors(colors, offset, count);
@@ -350,7 +390,10 @@ namespace TextTween
             for (int j = 0; j < text.textInfo.characterCount; j++)
             {
                 if (!characterInfos[j].isVisible)
+                {
                     continue;
+                }
+
                 count++;
             }
 

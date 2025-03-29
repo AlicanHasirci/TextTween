@@ -1,20 +1,22 @@
-using TextTween.Native;
-using Unity.Burst;
-using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine;
-
 namespace TextTween.Modifiers
 {
+    using Native;
+    using Unity.Burst;
+    using Unity.Collections;
+    using Unity.Jobs;
+    using Unity.Mathematics;
+    using UnityEngine;
+    using UnityEngine.Serialization;
+
     [AddComponentMenu("TextTween/Modifiers/Warp Modifier")]
     public class WarpModifier : CharModifier
     {
-        [SerializeField]
-        private float _intensity;
+        [FormerlySerializedAs("_intensity")]
+        public float Intensity;
 
-        [SerializeField]
-        private AnimationCurve _warpCurve;
+        [FormerlySerializedAs("_warpCurve")]
+        public AnimationCurve WarpCurve;
+
         private NativeCurve _nWarpCurve;
 
         public override JobHandle Schedule(
@@ -27,9 +29,9 @@ namespace TextTween.Modifiers
         {
             if (!_nWarpCurve.IsCreated)
             {
-                _nWarpCurve.Update(_warpCurve, 1024);
+                _nWarpCurve.Update(WarpCurve, 1024);
             }
-            return new Job(vertices, charData, _nWarpCurve, _intensity, progress).Schedule(
+            return new Job(vertices, charData, _nWarpCurve, Intensity, progress).Schedule(
                 charData.Length,
                 64,
                 dependency
@@ -89,7 +91,10 @@ namespace TextTween.Modifiers
                 for (int i = 0; i < characterData.VertexCount; i++)
                 {
                     _vertices[vertexOffset + i] -= offset;
-                    _vertices[vertexOffset + i] = math.mul(m, new float4(_vertices[vertexOffset + i], 1)).xyz;
+                    _vertices[vertexOffset + i] = math.mul(
+                        m,
+                        new float4(_vertices[vertexOffset + i], 1)
+                    ).xyz;
                     _vertices[vertexOffset + i] += offset;
                 }
             }
