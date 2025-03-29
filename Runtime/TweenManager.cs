@@ -31,7 +31,7 @@ namespace TextTween
 #else
         private
 #endif
-        TMP_Text[] _texts;
+        TMP_Text[] _texts = Array.Empty<TMP_Text>();
 
         [SerializeField]
 #if UNITY_EDITOR
@@ -39,7 +39,7 @@ namespace TextTween
 #else
         private
 #endif
-        List<CharModifier> _modifiers;
+        List<CharModifier> _modifiers = new();
 
         private NativeArray<CharData> _charData;
         private NativeArray<float3> _vertices;
