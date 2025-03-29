@@ -282,6 +282,21 @@ namespace TextTween
 
         private void ApplyModifiers(float progress)
         {
+            bool anyTexts = false;
+            foreach (TMP_Text text in _texts)
+            {
+                if (text != null)
+                {
+                    anyTexts = true;
+                    break;
+                }
+            }
+
+            if (!anyTexts)
+            {
+                return;
+            }
+
             if (!_vertices.IsCreated || !_colors.IsCreated)
             {
                 return;
@@ -292,12 +307,13 @@ namespace TextTween
 
             for (int i = 0; i < _modifiers.Count; i++)
             {
-                if (_modifiers[i] == null || !_modifiers[i].enabled)
+                CharModifier modifier = _modifiers[i];
+                if (modifier == null || !modifier.enabled)
                 {
                     continue;
                 }
-                _jobHandle = _modifiers[i]
-                    .Schedule(progress, vertices, colors, _charData, _jobHandle);
+
+                _jobHandle = modifier.Schedule(progress, vertices, colors, _charData, _jobHandle);
             }
 
             _jobHandle.Complete();
@@ -332,6 +348,11 @@ namespace TextTween
                 }
 =======
 >>>>>>> 9532f27 (Finish performance tests)
+
+                if (count == 0)
+                {
+                    return;
+                }
 
                 text.mesh.SetVertices(vertices, offset, count);
                 text.mesh.SetColors(colors, offset, count);
