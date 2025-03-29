@@ -225,7 +225,8 @@ namespace TextTween
                 {
                     continue;
                 }
-                _jobHandle = _modifiers[i].Schedule(progress, vertices, colors, _charData, _jobHandle);
+                _jobHandle = _modifiers[i]
+                    .Schedule(progress, vertices, colors, _charData, _jobHandle);
             }
 
             _jobHandle.Complete();
@@ -249,7 +250,7 @@ namespace TextTween
                 {
                     continue;
                 }
-                
+
                 int count = text.mesh.vertexCount;
                 text.mesh.SetVertices(vertices, offset, count);
                 text.mesh.SetColors(colors, offset, count);
@@ -289,10 +290,12 @@ namespace TextTween
             {
                 UpdateMeshes(texts, _vertices, _colors);
             }
-            if (_vertices.IsCreated) {
+            if (_vertices.IsCreated)
+            {
                 _vertices.Dispose();
             }
-            if (_colors.IsCreated) {
+            if (_colors.IsCreated)
+            {
                 _colors.Dispose();
             }
         }
