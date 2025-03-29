@@ -180,7 +180,11 @@ namespace TextTween {
             }
             if (_vertices.IsCreated && _colors.IsCreated) {
                 UpdateMeshes(_vertices, _colors);
+            }
+            if (_vertices.IsCreated) {
                 _vertices.Dispose();
+            }
+            if (_colors.IsCreated) {
                 _colors.Dispose();
             }
         }
