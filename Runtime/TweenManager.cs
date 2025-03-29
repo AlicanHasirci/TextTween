@@ -233,7 +233,7 @@ namespace TextTween
                     meshInfos[j].vertices = text.mesh.vertices;
                 }
 
-                text.UpdateVertexData((TMP_VertexDataUpdateFlags)17);
+                text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32 | TMP_VertexDataUpdateFlags.Vertices);
             }
         }
 
