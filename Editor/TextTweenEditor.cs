@@ -40,13 +40,8 @@ namespace TextTween.Editor
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            var tweenManager = target as TweenManager;
-            CheckForChanges(
-                tweenManager,
-                out bool createArrays,
-                out bool applyChanges,
-                out IReadOnlyList<TMP_Text> oldTexts
-            );
+            TweenManager tweenManager = target as TweenManager;
+            CheckForChanges(tweenManager, out bool createArrays, out bool applyChanges, out IReadOnlyList<TMP_Text> oldTexts);
 
             if (createArrays)
             {
@@ -55,7 +50,9 @@ namespace TextTween.Editor
             }
 
             if (applyChanges)
+            {
                 tweenManager.ForceUpdate();
+            }
         }
 
         private void CheckForChanges(

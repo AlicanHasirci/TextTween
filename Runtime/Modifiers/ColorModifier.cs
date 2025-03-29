@@ -32,7 +32,9 @@ namespace TextTween.Modifiers
         public override void Dispose()
         {
             if (_nativeGradient.IsCreated)
+            {
                 _nativeGradient.Dispose();
+            }
         }
 
         private struct Job : IJobParallelFor
@@ -60,12 +62,14 @@ namespace TextTween.Modifiers
 
             public void Execute(int index)
             {
-                var characterData = _data[index];
+                CharData characterData = _data[index];
                 int vertexOffset = characterData.VertexIndex;
                 float p = Remap(_progress, characterData.Interval);
-                var color = _gradient.Evaluate(p);
+                float4 color = _gradient.Evaluate(p);
                 for (int i = 0; i < characterData.VertexCount; i++)
+                {
                     _colors[vertexOffset + i] *= color;
+                }
             }
         }
     }

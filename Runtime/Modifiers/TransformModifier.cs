@@ -52,7 +52,9 @@ namespace TextTween.Modifiers
         )
         {
             if (!_nCurve.IsCreated)
+            {
                 _nCurve.Update(_curve, 1024);
+            }
             return new Job(
                 vertices,
                 charData,
@@ -68,7 +70,9 @@ namespace TextTween.Modifiers
         public override void Dispose()
         {
             if (_nCurve.IsCreated)
+            {
                 _nCurve.Dispose();
+            }
         }
 
         private struct Job : IJobParallelFor
@@ -108,43 +112,45 @@ namespace TextTween.Modifiers
 
             public void Execute(int index)
             {
-                var characterData = _data[index];
+                CharData characterData = _data[index];
                 int vertexOffset = characterData.VertexIndex;
-                var offset = Offset(_vertices, vertexOffset, _pivot);
+                float3 offset = Offset(_vertices, vertexOffset, _pivot);
                 float p = _curve.Evaluate(Remap(_progress, characterData.Interval));
-                var m = GetTransformation(p);
+                float4x4 m = GetTransformation(p);
                 for (int i = 0; i < characterData.VertexCount; i++)
                 {
                     _vertices[vertexOffset + i] -= offset;
-                    _vertices[vertexOffset + i] = math.mul(
-                        m,
-                        new float4(_vertices[vertexOffset + i], 1)
-                    ).xyz;
+                    _vertices[vertexOffset + i] = math.mul(m, new float4(_vertices[vertexOffset + i], 1)).xyz;
                     _vertices[vertexOffset + i] += offset;
                 }
             }
 
             private float4x4 GetTransformation(float progress)
             {
-                float e = progress;
-                var fp = float3.zero;
-                var fr = quaternion.identity;
-                var fs = (float3)1;
+                float3 fp = float3.zero;
+                quaternion fr = quaternion.identity;
+                float3 fs = 1;
                 switch (_type)
                 {
                     case Type.Position:
-                        fp = _intensity * e;
+                        fp = _intensity * progress;
                         break;
                     case Type.Rotation:
-                        fr = quaternion.Euler(math.radians(_intensity * e));
+                        fr = quaternion.Euler(math.radians(_intensity * progress));
                         break;
                     case Type.Scale:
                         if (_scale.HasFlagNoAlloc(Scale.X))
-                            fs.x = e * _intensity.x;
+                        {
+                            fs.x = progress * _intensity.x;
+                        }
                         if (_scale.HasFlagNoAlloc(Scale.Y))
-                            fs.y = e * _intensity.y;
+                        {
+                            fs.y = progress * _intensity.y;
+                        }
                         if (_scale.HasFlagNoAlloc(Scale.Z))
-                            fs.z = e * _intensity.z;
+                        {
+                            fs.z = progress * _intensity.z;
+                        }
                         break;
                     default:
                         return float4x4.identity;

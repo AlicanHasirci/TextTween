@@ -15,11 +15,13 @@ namespace TextTween.Native
         public void Update(Gradient gradient, int resolution)
         {
             if (!_values.IsCreated || _values.Length != resolution)
+            {
                 InitializeValues(resolution);
+            }
 
             for (int i = 0; i < resolution; i++)
             {
-                var c = gradient.Evaluate(i / (float)resolution);
+                Color c = gradient.Evaluate(i / (float)resolution);
                 _values[i] = new float4(c.r, c.g, c.b, c.a);
             }
         }
@@ -29,7 +31,9 @@ namespace TextTween.Native
             int count = _values.Length;
 
             if (count == 1)
+            {
                 return _values[0];
+            }
 
             t = math.saturate(t);
 
@@ -37,7 +41,9 @@ namespace TextTween.Native
             int lower = (int)it;
             int upper = lower + 1;
             if (upper >= count)
+            {
                 upper = count - 1;
+            }
 
             return math.lerp(_values[lower], _values[upper], it - lower);
         }
@@ -45,7 +51,9 @@ namespace TextTween.Native
         private void InitializeValues(int count)
         {
             if (_values.IsCreated)
+            {
                 _values.Dispose();
+            }
 
             _values = new NativeArray<float4>(
                 count,
@@ -57,7 +65,9 @@ namespace TextTween.Native
         public void Dispose()
         {
             if (_values.IsCreated)
+            {
                 _values.Dispose();
+            }
         }
     }
 }

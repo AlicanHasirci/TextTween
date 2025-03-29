@@ -26,7 +26,9 @@ namespace TextTween.Modifiers
         )
         {
             if (!_nWarpCurve.IsCreated)
+            {
                 _nWarpCurve.Update(_warpCurve, 1024);
+            }
             return new Job(vertices, charData, _nWarpCurve, _intensity, progress).Schedule(
                 charData.Length,
                 64,
@@ -41,7 +43,7 @@ namespace TextTween.Modifiers
         }
 
         [BurstCompile]
-        public struct Job : IJobParallelFor
+        private struct Job : IJobParallelFor
         {
             [NativeDisableParallelForRestriction]
             private NativeArray<float3> _vertices;
@@ -69,17 +71,17 @@ namespace TextTween.Modifiers
 
             public void Execute(int index)
             {
-                var characterData = _data[index];
+                CharData characterData = _data[index];
                 int vertexOffset = characterData.VertexIndex;
-                var offset = Offset(_vertices, vertexOffset, .5f);
+                float3 offset = Offset(_vertices, vertexOffset, .5f);
                 float width = characterData.Bounds.z - characterData.Bounds.x;
                 float x = (offset.x - characterData.Bounds.x) / width;
                 float p = Remap(_progress, characterData.Interval);
                 float y = _warpCurve.Evaluate(x) * p * _intensity;
-                var v = _warpCurve.Velocity(x);
-                var t = math.normalize(new float2(v.x * width, v.y * p * _intensity));
+                float2 v = _warpCurve.Velocity(x);
+                float2 t = math.normalize(new float2(v.x * width, v.y * p * _intensity));
                 float a = math.atan2(t.y, t.x);
-                var m = float4x4.TRS(
+                float4x4 m = float4x4.TRS(
                     new float3(0, y, 0),
                     quaternion.Euler(0, 0, a),
                     new float3(1, 1, 1)
@@ -87,10 +89,7 @@ namespace TextTween.Modifiers
                 for (int i = 0; i < characterData.VertexCount; i++)
                 {
                     _vertices[vertexOffset + i] -= offset;
-                    _vertices[vertexOffset + i] = math.mul(
-                        m,
-                        new float4(_vertices[vertexOffset + i], 1)
-                    ).xyz;
+                    _vertices[vertexOffset + i] = math.mul(m, new float4(_vertices[vertexOffset + i], 1)).xyz;
                     _vertices[vertexOffset + i] += offset;
                 }
             }

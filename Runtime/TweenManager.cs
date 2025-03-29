@@ -36,9 +36,13 @@ namespace TextTween
         private void OnEnable()
         {
             if (_texts == null || _texts.Length == 0)
+            {
                 return;
+            }
             for (int i = 0; i < _texts.Length; i++)
+            {
                 _texts[i].ForceMeshUpdate(true);
+            }
 
             DisposeArrays(_texts);
             CreateNativeArrays();
@@ -60,9 +64,13 @@ namespace TextTween
         private void Update()
         {
             if (!Application.isPlaying)
+            {
                 return;
+            }
             if (Mathf.Approximately(_current, Progress))
+            {
                 return;
+            }
             ApplyModifiers(Progress);
         }
 
@@ -72,13 +80,17 @@ namespace TextTween
             for (int i = 0; i < _texts.Length; i++)
             {
                 if (_texts[i] != obj)
+                {
                     continue;
+                }
                 found = true;
                 break;
             }
 
             if (!found)
+            {
                 return;
+            }
 
             DisposeArrays(_texts);
             CreateNativeArrays();
@@ -97,12 +109,16 @@ namespace TextTween
             for (int i = 0; i < _texts.Length; i++)
             {
                 if (_texts[i] == null)
+                {
                     continue;
+                }
                 vertexCount += _texts[i].mesh.vertexCount;
             }
 
             if (vertexCount == 0)
+            {
                 return;
+            }
 
             _vertices = new NativeArray<float3>(
                 vertexCount,
@@ -125,20 +141,26 @@ namespace TextTween
             }
         }
 
-        public void CreateCharDataArray()
+        private void CreateCharDataArray()
         {
             int visibleCharCount = 0;
             for (int i = 0; i < _texts.Length; i++)
             {
                 if (_texts[i] == null)
+                {
                     continue;
+                }
                 visibleCharCount += GetVisibleCharCount(_texts[i]);
             }
 
             if (visibleCharCount == 0)
+            {
                 return;
+            }
             if (_charData.IsCreated)
+            {
                 _charData.Dispose();
+            }
             _charData = new NativeArray<CharData>(
                 visibleCharCount,
                 Allocator.Persistent,
@@ -148,15 +170,17 @@ namespace TextTween
             int indexOffset = 0;
             for (int i = 0, k = 0; i < _texts.Length; i++)
             {
-                var text = _texts[i];
+                TMP_Text text = _texts[i];
                 if (text == null)
+                {
                     continue;
+                }
                 int charCount = GetVisibleCharCount(_texts[i]);
                 TMP_CharacterInfo[] characterInfos = text.textInfo.characterInfo;
                 float totalTime = (charCount - 1) * Offset + 1;
                 float charOffset = Offset / totalTime;
                 float charDuration = 1 / totalTime;
-                var bounds = new float4(
+                float4 bounds = new(
                     text.textBounds.min.x,
                     text.textBounds.min.y,
                     text.textBounds.max.x,
@@ -165,9 +189,11 @@ namespace TextTween
                 for (int j = 0, l = 0; j < characterInfos.Length; j++)
                 {
                     if (!characterInfos[j].isVisible)
+                    {
                         continue;
+                    }
                     float offset = charOffset * l;
-                    var time = new float2(offset, offset + charDuration);
+                    float2 time = new(offset, offset + charDuration);
                     const int vertexPerChar = 4;
                     _charData[k] = new CharData(
                         time,
@@ -186,20 +212,20 @@ namespace TextTween
         private void ApplyModifiers(float progress)
         {
             if (!_vertices.IsCreated || !_colors.IsCreated)
+            {
                 throw new Exception("Must have valid texts to apply modifiers.");
+            }
 
-            using NativeArray<float3> vertices = new NativeArray<float3>(
-                _vertices,
-                Allocator.TempJob
-            );
-            using NativeArray<float4> colors = new NativeArray<float4>(_colors, Allocator.TempJob);
+            using NativeArray<float3> vertices = new(_vertices, Allocator.TempJob);
+            using NativeArray<float4> colors = new(_colors, Allocator.TempJob);
 
             for (int i = 0; i < _modifiers.Count; i++)
             {
                 if (_modifiers[i] == null || !_modifiers[i].enabled)
+                {
                     continue;
-                _jobHandle = _modifiers[i]
-                    .Schedule(progress, vertices, colors, _charData, _jobHandle);
+                }
+                _jobHandle = _modifiers[i].Schedule(progress, vertices, colors, _charData, _jobHandle);
             }
 
             _jobHandle.Complete();
@@ -218,9 +244,12 @@ namespace TextTween
             int offset = 0;
             for (int i = 0; i < texts.Count; i++)
             {
-                var text = texts[i];
+                TMP_Text text = texts[i];
                 if (text.mesh == null)
+                {
                     continue;
+                }
+                
                 int count = text.mesh.vertexCount;
                 text.mesh.SetVertices(vertices, offset, count);
                 text.mesh.SetColors(colors, offset, count);
@@ -233,7 +262,9 @@ namespace TextTween
                     meshInfos[j].vertices = text.mesh.vertices;
                 }
 
-                text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32 | TMP_VertexDataUpdateFlags.Vertices);
+                text.UpdateVertexData(
+                    TMP_VertexDataUpdateFlags.Colors32 | TMP_VertexDataUpdateFlags.Vertices
+                );
             }
         }
 
@@ -251,7 +282,9 @@ namespace TextTween
         {
             _jobHandle.Complete();
             if (_charData.IsCreated)
+            {
                 _charData.Dispose();
+            }
             if (_vertices.IsCreated && _colors.IsCreated)
             {
                 UpdateMeshes(texts, _vertices, _colors);

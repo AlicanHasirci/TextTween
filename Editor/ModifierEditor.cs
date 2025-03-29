@@ -9,9 +9,10 @@ namespace TextTween.Editor
         {
             EditorGUI.BeginChangeCheck();
             base.OnInspectorGUI();
-            if (!EditorGUI.EndChangeCheck())
-                return;
-            ((CharModifier)target).Dispose();
+            if (EditorGUI.EndChangeCheck())
+            {
+                ((CharModifier)target).Dispose();
+            }
         }
     }
 }
