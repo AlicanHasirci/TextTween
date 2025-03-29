@@ -4,56 +4,68 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace TextTween.Modifiers {
+namespace TextTween.Modifiers
+{
     [AddComponentMenu("TextTween/Modifiers/Color Modifier")]
-    public class ColorModifier : CharModifier {
-        [SerializeField] private Gradient _gradient;
+    public class ColorModifier : CharModifier
+    {
+        [SerializeField]
+        private Gradient _gradient;
         private NativeGradient _nativeGradient;
 
-        public override JobHandle Schedule( 
-            float progress, 
-            NativeArray<float3> vertices, 
-            NativeArray<float4> colors, 
+        public override JobHandle Schedule(
+            float progress,
+            NativeArray<float3> vertices,
+            NativeArray<float4> colors,
             NativeArray<CharData> charData,
-            JobHandle dependency) {
+            JobHandle dependency
+        )
+        {
             _nativeGradient.Update(_gradient, 1024);
-            return new Job(
-                    colors,
-                    charData,
-                    _nativeGradient,
-                    progress)
-                .Schedule(charData.Length, 64, dependency);
-        }
-        
-        public override void Dispose() {
-            if (_nativeGradient.IsCreated) _nativeGradient.Dispose();
+            return new Job(colors, charData, _nativeGradient, progress).Schedule(
+                charData.Length,
+                64,
+                dependency
+            );
         }
 
-        private struct Job : IJobParallelFor {
-            [NativeDisableParallelForRestriction] private NativeArray<float4> _colors;
-            [ReadOnly] private NativeArray<CharData> _data;
+        public override void Dispose()
+        {
+            if (_nativeGradient.IsCreated)
+                _nativeGradient.Dispose();
+        }
+
+        private struct Job : IJobParallelFor
+        {
+            [NativeDisableParallelForRestriction]
+            private NativeArray<float4> _colors;
+
+            [ReadOnly]
+            private NativeArray<CharData> _data;
             private readonly NativeGradient _gradient;
             private readonly float _progress;
 
             public Job(
-                NativeArray<float4> colors, 
+                NativeArray<float4> colors,
                 NativeArray<CharData> data,
-                NativeGradient gradient, 
-                float progress) {
+                NativeGradient gradient,
+                float progress
+            )
+            {
                 _colors = colors;
                 _data = data;
                 _gradient = gradient;
                 _progress = progress;
             }
 
-            public void Execute(int index) {
+            public void Execute(int index)
+            {
                 var characterData = _data[index];
-                var vertexOffset = characterData.VertexIndex;
-                var p = Remap(_progress, characterData.Interval);
+                int vertexOffset = characterData.VertexIndex;
+                float p = Remap(_progress, characterData.Interval);
                 var color = _gradient.Evaluate(p);
-                for (var i = 0; i < characterData.VertexCount; i++) {
+                for (int i = 0; i < characterData.VertexCount; i++)
                     _colors[vertexOffset + i] *= color;
-                }
             }
         }
     }
