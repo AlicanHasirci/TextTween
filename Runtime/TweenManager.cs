@@ -132,8 +132,8 @@ namespace TextTween {
                 throw new Exception("Must have valid texts to apply modifiers.");
             }
             
-            var vertices = new NativeArray<float3>(_vertices, Allocator.TempJob);
-            var colors = new NativeArray<float4>(_colors, Allocator.TempJob);
+            using var vertices = new NativeArray<float3>(_vertices, Allocator.TempJob);
+            using var colors = new NativeArray<float4>(_colors, Allocator.TempJob);
             
             for (var i = 0; i < _modifiers.Count; i++) {
                 if (_modifiers[i] == null || !_modifiers[i].enabled) continue;
@@ -145,8 +145,6 @@ namespace TextTween {
             UpdateMeshes(vertices, colors);
 
             _current = Progress;
-            vertices.Dispose();
-            colors.Dispose();
         }
 
         private void UpdateMeshes(NativeArray<float3> vertices, NativeArray<float4> colors) {
