@@ -5,7 +5,6 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Reflection;
     using System.Text;
     using Modifiers;
     using NUnit.Framework;
@@ -49,66 +48,20 @@
             );
             SetupGameObjects<WarpModifier>(out TweenManager warp, out TextMeshPro warpTextObject);
 
-            RunTest(
-                timeout,
-                GenerateText(1),
-                color,
-                colorTextObject,
-                transform,
-                transformTextObject,
-                warp,
-                warpTextObject
-            );
-            RunTest(
-                timeout,
-                GenerateText(10),
-                color,
-                colorTextObject,
-                transform,
-                transformTextObject,
-                warp,
-                warpTextObject
-            );
-            RunTest(
-                timeout,
-                GenerateText(100),
-                color,
-                colorTextObject,
-                transform,
-                transformTextObject,
-                warp,
-                warpTextObject
-            );
-            RunTest(
-                timeout,
-                GenerateText(1_000),
-                color,
-                colorTextObject,
-                transform,
-                transformTextObject,
-                warp,
-                warpTextObject
-            );
-            RunTest(
-                timeout,
-                GenerateText(10_000),
-                color,
-                colorTextObject,
-                transform,
-                transformTextObject,
-                warp,
-                warpTextObject
-            );
-            RunTest(
-                timeout,
-                GenerateText(100_000),
-                color,
-                colorTextObject,
-                transform,
-                transformTextObject,
-                warp,
-                warpTextObject
-            );
+            int[] textLengths = { 1, 10, 100, 1_000, 10_000, 1000_000 };
+            foreach (int textLength in textLengths)
+            {
+                RunTest(
+                    timeout,
+                    GenerateText(textLength),
+                    color,
+                    colorTextObject,
+                    transform,
+                    transformTextObject,
+                    warp,
+                    warpTextObject
+                );
+            }
         }
 
         private void SetupGameObjects<T>(out TweenManager tweenManager, out TextMeshPro text)
@@ -132,10 +85,6 @@
             SetupModifier(modifier);
             tweenManager._modifiers = new List<CharModifier> { modifier };
             tweenManager.CreateNativeArrays();
-
-            // Since we're doing this stuff outside of the Unity context, manually initialize the relevant init methods
-            AwakeObject(textObject);
-            AwakeObject(tweenManagerObject);
         }
 
         // Modifiers need to have their relevant properties setup, or they'll throw doing runtime stuff
@@ -162,24 +111,26 @@
                 }
                 case TransformModifier transformModifier:
                 {
-                    AnimationCurve curve = new();
-                    curve.AddKey(new Keyframe(0, 0));
-                    curve.AddKey(new Keyframe(1, 1));
-                    transformModifier.Curve = curve;
+                    transformModifier.Curve = GenerateAnimationCurve();
                     break;
                 }
                 case WarpModifier warpModifier:
                 {
-                    AnimationCurve curve = new();
-                    curve.AddKey(new Keyframe(0, 0));
-                    curve.AddKey(new Keyframe(1, 1));
-                    warpModifier.WarpCurve = curve;
+                    warpModifier.WarpCurve = GenerateAnimationCurve();
                     break;
                 }
                 default:
                     Assert.Fail($"Currently unsupported modifier type: {modifier.GetType()}");
                     break;
             }
+        }
+
+        private static AnimationCurve GenerateAnimationCurve()
+        {
+            AnimationCurve curve = new();
+            curve.AddKey(new Keyframe(0, 0));
+            curve.AddKey(new Keyframe(1, 1));
+            return curve;
         }
 
         private static void RunTest(
@@ -273,31 +224,6 @@
             }
 
             return result.ToString();
-        }
-
-        private static void AwakeObject(GameObject gameObject)
-        {
-            MonoBehaviour[] components = gameObject.GetComponents<MonoBehaviour>();
-            TriggerMethod("Awake");
-            TriggerMethod("OnEnable");
-            TriggerMethod("Start");
-            return;
-
-            void TriggerMethod(string methodName)
-            {
-                foreach (MonoBehaviour script in components)
-                {
-                    Type scriptType = script.GetType();
-                    MethodInfo method = scriptType.GetMethod(
-                        methodName,
-                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-                    );
-                    if (method != null)
-                    {
-                        _ = method.Invoke(script, null);
-                    }
-                }
-            }
         }
     }
 #endif
