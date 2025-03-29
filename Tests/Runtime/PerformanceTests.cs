@@ -221,8 +221,13 @@
                     ++count;
                 } while (timer.Elapsed < timeout);
 
-                return ((int)Math.Floor(count / timeout.TotalSeconds)).ToString("N0");
+                return FormatNumber((int)Math.Floor(count / timeout.TotalSeconds));
             }
+        }
+
+        private static string FormatNumber(int number)
+        {
+            return number.ToString("N0");
         }
 
         private static string GenerateText(int length)
@@ -252,7 +257,7 @@
                     result.Append(currentChar);
                     if (count > 1)
                     {
-                        result.Append('x').Append(count);
+                        result.Append('x').Append(FormatNumber(count));
                     }
 
                     currentChar = input[i];
@@ -264,7 +269,7 @@
             result.Append(currentChar);
             if (count > 1)
             {
-                result.Append('x').Append(count);
+                result.Append('x').Append(FormatNumber(count));
             }
 
             return result.ToString();
