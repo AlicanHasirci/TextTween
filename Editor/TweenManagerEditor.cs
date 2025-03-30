@@ -135,24 +135,33 @@ namespace TextTween.Editor
         {
             TweenManager tweenManager = (TweenManager)target;
             T[] current = new T[serializedProperty.arraySize];
+            
             for (int i = 0; i < serializedProperty.arraySize; i++)
             {
                 current[i] = serializedProperty.GetArrayElementAtIndex(i).objectReferenceValue as T;
             }
 
+            
+            for (int i = current.Length - 1; i >= 0; i--)
+            {
+                if (current[i] != null)
+                {
+                    continue;
+                }
+                serializedProperty.DeleteArrayElementAtIndex(i);
+            }
+
             T[] found = tweenManager.GetComponentsInChildren<T>().Except(current).ToArray();
-            if (found.Length == 0)
+            if (found.Length > 0)
             {
-                return;
+                foreach (T component in found)
+                {
+                    int index = serializedProperty.arraySize;
+                    serializedProperty.InsertArrayElementAtIndex(index);
+                    serializedProperty.GetArrayElementAtIndex(index).objectReferenceValue = component;
+                }
             }
-
-            foreach (T component in found)
-            {
-                int index = serializedProperty.arraySize;
-                serializedProperty.InsertArrayElementAtIndex(index);
-                serializedProperty.GetArrayElementAtIndex(index).objectReferenceValue = component;
-            }
-
+            
             serializedObject.ApplyModifiedProperties();
         }
     }
