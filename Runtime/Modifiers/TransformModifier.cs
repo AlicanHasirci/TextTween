@@ -1,7 +1,6 @@
 namespace TextTween.Modifiers
 {
     using System;
-    using System.Runtime.CompilerServices;
     using Extensions;
     using Native;
     using Unity.Collections;
@@ -9,7 +8,6 @@ namespace TextTween.Modifiers
     using Unity.Mathematics;
     using UnityEngine;
     using UnityEngine.Serialization;
-    using UnityEngine.UIElements;
 
     public enum TransformType
     {
