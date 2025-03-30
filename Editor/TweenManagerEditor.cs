@@ -152,7 +152,13 @@ namespace TextTween.Editor
             TweenManager tweenManager = target as TweenManager;
             if (tweenManager == null)
             {
-                Object targetObject = serializedProperty?.serializedObject?.targetObject;
+                SerializedObject propertyObject = serializedProperty?.serializedObject;
+                if (propertyObject == null)
+                {
+                    return;
+                }
+
+                Object targetObject = propertyObject.targetObject;
                 tweenManager = targetObject switch
                 {
                     GameObject go => go.GetComponentInChildren<TweenManager>(true),
@@ -193,7 +199,9 @@ namespace TextTween.Editor
                 }
             }
 
-            serializedProperty.serializedObject.ApplyModifiedProperties();
+            (
+                serializedObject == null ? serializedProperty.serializedObject : serializedObject
+            ).ApplyModifiedProperties();
         }
     }
 #endif
