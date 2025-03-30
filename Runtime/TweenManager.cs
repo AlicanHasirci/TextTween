@@ -48,13 +48,18 @@ namespace TextTween
             {
                 return;
             }
-            for (int i = 0; i < _texts.Length; i++)
+            if (!Application.isPlaying)
             {
-                if (_texts[i] == null)
+                for (int i = 0; i < _texts.Length; i++)
                 {
-                    continue;
+                    TMP_Text text = _texts[i];
+                    if (text == null)
+                    {
+                        continue;
+                    }
+
+                    text.ForceMeshUpdate(true);
                 }
-                _texts[i].ForceMeshUpdate(true);
             }
 
             DisposeArrays(_texts);
@@ -238,7 +243,7 @@ namespace TextTween
         {
             if (!_vertices.IsCreated || !_colors.IsCreated)
             {
-                throw new Exception("Must have valid texts to apply modifiers.");
+                return;
             }
 
             using NativeArray<float3> vertices = new(_vertices, Allocator.TempJob);
@@ -312,12 +317,11 @@ namespace TextTween
                 _charData.Dispose();
             }
             if (_vertices.IsCreated && _colors.IsCreated)
-            { 
+            {
                 if (updateMeshes)
                 {
                     UpdateMeshes(texts, _vertices, _colors);
                 }
-
             }
             if (_vertices.IsCreated)
             {
