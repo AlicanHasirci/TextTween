@@ -295,7 +295,6 @@ namespace TextTween
 
                 text.mesh.SetVertices(vertices, offset, count);
                 text.mesh.SetColors(colors, offset, count);
-
                 offset += count;
 
                 TMP_MeshInfo[] meshInfos = text.textInfo.meshInfo;
