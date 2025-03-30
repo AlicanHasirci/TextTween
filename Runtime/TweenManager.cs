@@ -26,10 +26,6 @@ namespace TextTween
         [Range(0, 1f)]
         public float Offset;
 
-        /*
-            Modification of both _texts and _modifiers at runtime is not supported. But it is extremely useful to be
-            able to modify them from editor scripts as well as from tests. Therefore, conditional access is simplest.
-         */
         [SerializeField]
         internal TMP_Text[] _texts;
 
