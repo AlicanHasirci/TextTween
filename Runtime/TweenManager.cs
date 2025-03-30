@@ -1,3 +1,8 @@
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("TextTween.Tests")]
+[assembly: InternalsVisibleTo("TextTween.Editor")]
+
 namespace TextTween
 {
     using System;
@@ -26,20 +31,10 @@ namespace TextTween
             able to modify them from editor scripts as well as from tests. Therefore, conditional access is simplest.
          */
         [SerializeField]
-#if UNITY_EDITOR
-        public
-#else
-        private
-#endif
-        TMP_Text[] _texts = Array.Empty<TMP_Text>();
+        internal TMP_Text[] _texts;
 
         [SerializeField]
-#if UNITY_EDITOR
-        public
-#else
-        private
-#endif
-        List<CharModifier> _modifiers = new();
+        internal List<CharModifier> _modifiers;
 
         private NativeArray<CharData> _charData;
         private NativeArray<float3> _vertices;
@@ -63,7 +58,6 @@ namespace TextTween
             {
                 return;
             }
-<<<<<<< HEAD
             if (!Application.isPlaying)
             {
                 for (int i = 0; i < _texts.Length; i++)
@@ -76,17 +70,6 @@ namespace TextTween
 
                     text.ForceMeshUpdate(true);
                 }
-=======
-
-            for (int i = 0; i < _texts.Length; i++)
-            {
-                TMP_Text text = _texts[i];
-                if (text == null)
-                {
-                    continue;
-                }
-                text.ForceMeshUpdate(true);
->>>>>>> 9532f27 (Finish performance tests)
             }
 
             Dispose();
@@ -128,12 +111,7 @@ namespace TextTween
             ApplyModifiers(Progress);
         }
 
-#if UNITY_EDITOR
-        public
-#else
-        private
-#endif
-        void OnTextChanged(Object obj)
+        internal void OnTextChanged(Object obj)
         {
             bool found = false;
             for (int i = 0; i < _texts.Length; i++)
@@ -200,12 +178,31 @@ namespace TextTween
                     continue;
                 }
                 int count = text.mesh.vertexCount;
-<<<<<<< HEAD
                 _lastKnownVertexCount[text] = count;
-=======
->>>>>>> 9532f27 (Finish performance tests)
+                if (count == 0)
+                {
+                    continue;
+                }
+
                 text.mesh.vertices.MemCpy(_vertices, vertexOffset, count);
-                text.mesh.colors.MemCpy(_colors, vertexOffset, count);
+                /*
+                    For some reason, when the editor auto switches from a Test run via the Test Runner to an open
+                    scene with TweenManagers in it, the vertices array will be correct, but the color array will be
+                    null. I have no idea why. If you click in the scene, things will properly initialize.
+                 */
+                Color[] colors = text.mesh.colors;
+                if (colors is { Length: > 0 })
+                {
+                    colors.MemCpy(_colors, vertexOffset, count);
+                }
+                else
+                {
+                    for (int j = 0; j < count; j++)
+                    {
+                        _colors[vertexOffset + j] = new float4(1, 1, 1, 1);
+                    }
+                }
+
                 vertexOffset += count;
             }
         }
@@ -282,21 +279,6 @@ namespace TextTween
 
         private void ApplyModifiers(float progress)
         {
-            bool anyTexts = false;
-            foreach (TMP_Text text in _texts)
-            {
-                if (text != null)
-                {
-                    anyTexts = true;
-                    break;
-                }
-            }
-
-            if (!anyTexts)
-            {
-                return;
-            }
-
             if (!_vertices.IsCreated || !_colors.IsCreated)
             {
                 return;
@@ -307,19 +289,16 @@ namespace TextTween
 
             for (int i = 0; i < _modifiers.Count; i++)
             {
-                CharModifier modifier = _modifiers[i];
-                if (modifier == null || !modifier.enabled)
+                if (_modifiers[i] == null || !_modifiers[i].enabled)
                 {
                     continue;
                 }
-
-                _jobHandle = modifier.Schedule(progress, vertices, colors, _charData, _jobHandle);
+                _jobHandle = _modifiers[i]
+                    .Schedule(progress, vertices, colors, _charData, _jobHandle);
             }
 
             _jobHandle.Complete();
-
             UpdateMeshes(_texts, vertices, colors);
-
             _current = Progress;
         }
 
@@ -340,22 +319,18 @@ namespace TextTween
                 }
 
                 int count = text.mesh.vertexCount;
-<<<<<<< HEAD
                 if (text == toIgnore)
                 {
                     offset += _lastKnownVertexCount.GetValueOrDefault(text, count);
                     continue;
                 }
-=======
->>>>>>> 9532f27 (Finish performance tests)
 
-                if (count == 0)
+                if (count != 0)
                 {
-                    return;
+                    text.mesh.SetVertices(vertices, offset, count);
+                    text.mesh.SetColors(colors, offset, count);
                 }
 
-                text.mesh.SetVertices(vertices, offset, count);
-                text.mesh.SetColors(colors, offset, count);
                 offset += count;
 
                 TMP_MeshInfo[] meshInfos = text.textInfo.meshInfo;

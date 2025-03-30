@@ -4,10 +4,10 @@ namespace TextTween.Editor
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using TMPro;
     using UnityEngine;
     using UnityEditor;
+    using Object = UnityEngine.Object;
 
     [CustomEditor(typeof(TweenManager))]
     public class TweenManagerEditor : Editor
@@ -17,22 +17,6 @@ namespace TextTween.Editor
         private bool _enabled;
         private readonly List<TMP_Text> _texts = new();
         private readonly List<CharModifier> _modifiers = new();
-
-        private static readonly Lazy<FieldInfo> TextField = new(
-            () =>
-                typeof(TweenManager).GetField(
-                    "_texts",
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-                )
-        );
-
-        private static readonly Lazy<FieldInfo> ModifiersField = new(
-            () =>
-                typeof(TweenManager).GetField(
-                    "_modifiers",
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-                )
-        );
 
         private void OnEnable()
         {
@@ -62,7 +46,6 @@ namespace TextTween.Editor
                 tweenManager.Dispose(oldTexts);
                 tweenManager.CreateNativeArrays();
             }
-
             if (applyChanges)
             {
                 tweenManager.ForceUpdate();
@@ -79,9 +62,20 @@ namespace TextTween.Editor
             createArrays = false;
             applyChanges = false;
             oldTexts = _texts;
-            if (!manager.enabled || !manager.gameObject.activeInHierarchy)
+            if (manager == null || !manager.enabled || !manager.gameObject.activeInHierarchy)
             {
                 _enabled = false;
+                if (manager != null)
+                {
+                    // Need to do all the state update below, otherwise our cache can become dirty and we'll miss changes
+                    oldTexts = _texts.ToArray();
+                    _progress = manager.Progress;
+                    _offset = manager.Offset;
+                    _texts.Clear();
+                    _texts.AddRange(manager._texts ?? Array.Empty<TMP_Text>());
+                    _modifiers.Clear();
+                    _modifiers.AddRange(manager._modifiers ?? Enumerable.Empty<CharModifier>());
+                }
                 return;
             }
 
@@ -106,9 +100,7 @@ namespace TextTween.Editor
                 _progress = manager.Progress;
             }
 
-            IReadOnlyList<TMP_Text> texts =
-                TextField.Value.GetValue(manager) as IReadOnlyList<TMP_Text>
-                ?? Array.Empty<TMP_Text>();
+            IReadOnlyList<TMP_Text> texts = manager._texts ?? Array.Empty<TMP_Text>();
             if (!_texts.SequenceEqual(texts))
             {
                 createArrays = true;
@@ -119,8 +111,7 @@ namespace TextTween.Editor
             }
 
             IReadOnlyList<CharModifier> modifiers =
-                ModifiersField.Value.GetValue(manager) as IReadOnlyList<CharModifier>
-                ?? Array.Empty<CharModifier>();
+                manager._modifiers as IReadOnlyList<CharModifier> ?? Array.Empty<CharModifier>();
             if (!_modifiers.SequenceEqual(modifiers))
             {
                 applyChanges = true;
@@ -136,7 +127,7 @@ namespace TextTween.Editor
                 return;
             }
 
-            if (property.name == "_texts")
+            if (property.name == nameof(TweenManager._texts))
             {
                 menu.AddItem(
                     new GUIContent("Find All Texts"),
@@ -145,7 +136,7 @@ namespace TextTween.Editor
                 );
             }
 
-            if (property.name == "_modifiers")
+            if (property.name == nameof(TweenManager._modifiers))
             {
                 menu.AddItem(
                     new GUIContent("Find All Modifiers"),
@@ -156,9 +147,24 @@ namespace TextTween.Editor
         }
 
         private void FindMissingComponents<T>(SerializedProperty serializedProperty)
-            where T : UnityEngine.Object
+            where T : Object
         {
-            TweenManager tweenManager = (TweenManager)target;
+            TweenManager tweenManager = target as TweenManager;
+            if (tweenManager == null)
+            {
+                Object targetObject = serializedProperty.serializedObject?.targetObject;
+                tweenManager = targetObject switch
+                {
+                    GameObject go => go.GetComponentInChildren<TweenManager>(true),
+                    Component component => component.GetComponentInChildren<TweenManager>(true),
+                    _ => tweenManager,
+                };
+                // Whoops! We're somewhere really unexpected! Be safe and exit.
+                if (tweenManager == null)
+                {
+                    return;
+                }
+            }
             T[] current = new T[serializedProperty.arraySize];
 
             for (int i = 0; i < serializedProperty.arraySize; i++)
@@ -187,7 +193,7 @@ namespace TextTween.Editor
                 }
             }
 
-            serializedObject.ApplyModifiedProperties();
+            serializedProperty.serializedObject.ApplyModifiedProperties();
         }
     }
 #endif

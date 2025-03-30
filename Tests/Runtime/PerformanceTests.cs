@@ -24,13 +24,16 @@
             {
                 Object.Destroy(gameObject);
             }
+            _spawned.Clear();
         }
 
         [Test]
         public void Benchmark()
         {
+            // Run over more than one seconds to stabilize things, then we take an average of total ops / second
             TimeSpan timeout = TimeSpan.FromSeconds(2);
 
+            Debug.Log($"## Performance {Environment.NewLine}");
             Debug.Log(
                 "| Text | Color Modifier Op/s | Transform Modifier Op/s | Warp Modifier Op/s |"
             );
@@ -77,14 +80,11 @@
             _spawned.Add(textObject);
 
             text = textObject.GetComponent<TextMeshPro>();
-            text.text = "Test";
             tweenManager = tweenManagerObject.GetComponent<TweenManager>();
-            tweenManager.Dispose();
             tweenManager._texts = new TMP_Text[] { text };
             T modifier = tweenManager.GetComponent<T>();
             SetupModifier(modifier);
             tweenManager._modifiers = new List<CharModifier> { modifier };
-            tweenManager.CreateNativeArrays();
         }
 
         // Modifiers need to have their relevant properties setup, or they'll throw doing runtime stuff
@@ -157,9 +157,12 @@
             string RunPerfTest(TweenManager tweenManager, TextMeshPro textObject)
             {
                 textObject.text = text;
-                tweenManager.Dispose();
+                // TODO: Figure out how to run this in a more fully-featured way such that we don't have to kick things
+
+                // Need to kick stuff, we're not operating in a full Unity context right now
                 textObject.ForceMeshUpdate(forceTextReparsing: true);
-                tweenManager.CreateNativeArrays();
+                // Need to kick the TweenManager too
+                tweenManager.OnTextChanged(textObject);
 
                 int count = 0;
                 Stopwatch timer = Stopwatch.StartNew();
@@ -216,7 +219,6 @@
                 }
             }
 
-            // Append the final character group
             result.Append(currentChar);
             if (count > 1)
             {

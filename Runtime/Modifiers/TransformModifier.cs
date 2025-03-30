@@ -1,6 +1,7 @@
 namespace TextTween.Modifiers
 {
     using System;
+    using System.Runtime.CompilerServices;
     using Extensions;
     using Native;
     using Unity.Collections;
@@ -8,8 +9,9 @@ namespace TextTween.Modifiers
     using Unity.Mathematics;
     using UnityEngine;
     using UnityEngine.Serialization;
+    using UnityEngine.UIElements;
 
-    public enum ModifierType
+    public enum TransformType
     {
         Position = 0,
         Rotation = 1,
@@ -17,7 +19,7 @@ namespace TextTween.Modifiers
     }
 
     [Flags]
-    public enum ModifierScale
+    public enum ScaleMask
     {
         X = 1 << 0,
         Y = 1 << 1,
@@ -31,11 +33,14 @@ namespace TextTween.Modifiers
         public AnimationCurve Curve;
 
         [FormerlySerializedAs("_type")]
-        public ModifierType Type;
+        public TransformType Type;
 
         [FormerlySerializedAs("_scale")]
-        public ModifierScale Scale;
+        public ScaleMask ScaleMask;
 
+        [Tooltip(
+            "When using Scale, set the X, Y and Z values to 0 to disable scaling on that axis."
+        )]
         [FormerlySerializedAs("_intensity")]
         public float3 Intensity;
 
@@ -63,7 +68,7 @@ namespace TextTween.Modifiers
                 Intensity,
                 Pivot,
                 Type,
-                Scale,
+                ScaleMask,
                 progress
             ).Schedule(charData.Length, 64, dependency);
         }
@@ -84,8 +89,8 @@ namespace TextTween.Modifiers
             [ReadOnly]
             private NativeArray<CharData> _data;
             private readonly NativeCurve _curve;
-            private readonly ModifierType _type;
-            private readonly ModifierScale _scale;
+            private readonly TransformType _type;
+            private readonly ScaleMask _scaleMask;
             private readonly float3 _intensity;
             private readonly float2 _pivot;
             private readonly float _progress;
@@ -96,8 +101,8 @@ namespace TextTween.Modifiers
                 NativeCurve curve,
                 float3 intensity,
                 float2 pivot,
-                ModifierType type,
-                ModifierScale scale,
+                TransformType type,
+                ScaleMask scaleMask,
                 float progress
             )
             {
@@ -105,7 +110,7 @@ namespace TextTween.Modifiers
                 _data = data;
                 _curve = curve;
                 _type = type;
-                _scale = scale;
+                _scaleMask = scaleMask;
                 _intensity = intensity;
                 _pivot = pivot;
                 _progress = progress;
@@ -136,22 +141,22 @@ namespace TextTween.Modifiers
                 float3 fs = 1;
                 switch (_type)
                 {
-                    case ModifierType.Position:
+                    case TransformType.Position:
                         fp = _intensity * progress;
                         break;
-                    case ModifierType.Rotation:
+                    case TransformType.Rotation:
                         fr = quaternion.Euler(math.radians(_intensity * progress));
                         break;
-                    case ModifierType.Scale:
-                        if (_scale.HasFlagNoAlloc(ModifierScale.X))
+                    case TransformType.Scale:
+                        if (_scaleMask.HasFlagNoAlloc(ScaleMask.X))
                         {
                             fs.x = progress * _intensity.x;
                         }
-                        if (_scale.HasFlagNoAlloc(ModifierScale.Y))
+                        if (_scaleMask.HasFlagNoAlloc(ScaleMask.Y))
                         {
                             fs.y = progress * _intensity.y;
                         }
-                        if (_scale.HasFlagNoAlloc(ModifierScale.Z))
+                        if (_scaleMask.HasFlagNoAlloc(ScaleMask.Z))
                         {
                             fs.z = progress * _intensity.z;
                         }
