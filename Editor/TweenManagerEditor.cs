@@ -14,6 +14,7 @@ namespace TextTween.Editor
     {
         private float _progress;
         private float _offset;
+        private bool _enabled;
         private readonly List<TMP_Text> _texts = new();
         private readonly List<CharModifier> _modifiers = new();
 
@@ -36,7 +37,7 @@ namespace TextTween.Editor
         private void OnEnable()
         {
             CheckForChanges(target as TweenManager, out _, out _, out _);
-            
+
             EditorApplication.contextualPropertyMenu += OnPropertyContextMenu;
         }
 
@@ -44,12 +45,17 @@ namespace TextTween.Editor
         {
             EditorApplication.contextualPropertyMenu -= OnPropertyContextMenu;
         }
-        
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
             TweenManager tweenManager = (TweenManager)target;
-            CheckForChanges(tweenManager, out bool createArrays, out bool applyChanges, out IReadOnlyList<TMP_Text> oldTexts);
+            CheckForChanges(
+                tweenManager,
+                out bool createArrays,
+                out bool applyChanges,
+                out IReadOnlyList<TMP_Text> oldTexts
+            );
 
             if (createArrays)
             {
@@ -73,6 +79,18 @@ namespace TextTween.Editor
             createArrays = false;
             applyChanges = false;
             oldTexts = _texts;
+            if (!manager.enabled || !manager.gameObject.activeInHierarchy)
+            {
+                _enabled = false;
+                return;
+            }
+
+            if (!_enabled)
+            {
+                createArrays = true;
+                applyChanges = true;
+                _enabled = true;
+            }
 
             if (manager.Offset != _offset)
             {
@@ -109,7 +127,7 @@ namespace TextTween.Editor
                 _modifiers.AddRange(modifiers);
             }
         }
-        
+
         private void OnPropertyContextMenu(GenericMenu menu, SerializedProperty property)
         {
             if (property.serializedObject.targetObject.GetType() != typeof(TweenManager))
@@ -119,29 +137,34 @@ namespace TextTween.Editor
 
             if (property.name == "_texts")
             {
-                menu.AddItem(new GUIContent("Find All Texts"), false, () => FindMissingComponents<TMP_Text>(property));
+                menu.AddItem(
+                    new GUIContent("Find All Texts"),
+                    false,
+                    () => FindMissingComponents<TMP_Text>(property)
+                );
             }
 
             if (property.name == "_modifiers")
             {
-                menu.AddItem(new GUIContent("Find All Modifiers"), false, () => FindMissingComponents<CharModifier>(property));
+                menu.AddItem(
+                    new GUIContent("Find All Modifiers"),
+                    false,
+                    () => FindMissingComponents<CharModifier>(property)
+                );
             }
         }
-        
-        private void FindMissingComponents<T>(
-            SerializedProperty serializedProperty
-        )
+
+        private void FindMissingComponents<T>(SerializedProperty serializedProperty)
             where T : UnityEngine.Object
         {
             TweenManager tweenManager = (TweenManager)target;
             T[] current = new T[serializedProperty.arraySize];
-            
+
             for (int i = 0; i < serializedProperty.arraySize; i++)
             {
                 current[i] = serializedProperty.GetArrayElementAtIndex(i).objectReferenceValue as T;
             }
 
-            
             for (int i = current.Length - 1; i >= 0; i--)
             {
                 if (current[i] != null)
@@ -158,10 +181,11 @@ namespace TextTween.Editor
                 {
                     int index = serializedProperty.arraySize;
                     serializedProperty.InsertArrayElementAtIndex(index);
-                    serializedProperty.GetArrayElementAtIndex(index).objectReferenceValue = component;
+                    serializedProperty.GetArrayElementAtIndex(index).objectReferenceValue =
+                        component;
                 }
             }
-            
+
             serializedObject.ApplyModifiedProperties();
         }
     }
