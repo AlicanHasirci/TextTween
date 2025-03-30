@@ -33,6 +33,15 @@ namespace TextTween
         private JobHandle _jobHandle;
         private float _current;
 
+        private readonly Action<Object> _onTextChanged;
+
+        private bool _eventAdded;
+
+        public TweenManager()
+        {
+            _onTextChanged = OnTextChanged;
+        }
+
         private void OnEnable()
         {
             if (_texts == null || _texts.Length == 0)
@@ -51,12 +60,20 @@ namespace TextTween
             DisposeArrays(_texts);
             CreateNativeArrays();
             ApplyModifiers(Progress);
-            TMPro_EventManager.TEXT_CHANGED_EVENT.Add(OnTextChanged);
+            if (!_eventAdded)
+            {
+                TMPro_EventManager.TEXT_CHANGED_EVENT.Add(_onTextChanged);
+            }
         }
 
         private void OnDisable()
         {
-            TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(OnTextChanged);
+            if (_eventAdded)
+            {
+                TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(_onTextChanged);
+                _eventAdded = false;
+            }
+
             Dispose();
         }
 
@@ -96,7 +113,7 @@ namespace TextTween
                 return;
             }
 
-            DisposeArrays(_texts);
+            DisposeArrays(_texts, updateMeshes: false);
             CreateNativeArrays();
             ApplyModifiers(Progress);
         }
@@ -287,7 +304,7 @@ namespace TextTween
             DisposeArrays(texts);
         }
 
-        private void DisposeArrays(IReadOnlyList<TMP_Text> texts)
+        private void DisposeArrays(IReadOnlyList<TMP_Text> texts, bool updateMeshes = true)
         {
             _jobHandle.Complete();
             if (_charData.IsCreated)
@@ -295,8 +312,12 @@ namespace TextTween
                 _charData.Dispose();
             }
             if (_vertices.IsCreated && _colors.IsCreated)
-            {
-                UpdateMeshes(texts, _vertices, _colors);
+            { 
+                if (updateMeshes)
+                {
+                    UpdateMeshes(texts, _vertices, _colors);
+                }
+
             }
             if (_vertices.IsCreated)
             {
