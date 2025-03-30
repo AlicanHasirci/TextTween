@@ -34,6 +34,7 @@ namespace TextTween
         private float _current;
 
         private readonly Action<Object> _onTextChanged;
+        private readonly Dictionary<TMP_Text, int> _lastKnownVertexCount = new();
 
         private bool _eventAdded;
 
@@ -68,6 +69,7 @@ namespace TextTween
             if (!_eventAdded)
             {
                 TMPro_EventManager.TEXT_CHANGED_EVENT.Add(_onTextChanged);
+                _eventAdded = true;
             }
         }
 
@@ -118,7 +120,7 @@ namespace TextTween
                 return;
             }
 
-            DisposeArrays(_texts, updateMeshes: false);
+            DisposeArrays(_texts, obj as TMP_Text);
             CreateNativeArrays();
             ApplyModifiers(Progress);
         }
@@ -160,13 +162,15 @@ namespace TextTween
             int vertexOffset = 0;
             for (int i = 0; i < _texts.Length; i++)
             {
-                if (_texts[i] == null)
+                TMP_Text text = _texts[i];
+                if (text == null)
                 {
                     continue;
                 }
-                int count = _texts[i].mesh.vertexCount;
-                _texts[i].mesh.vertices.MemCpy(_vertices, vertexOffset, count);
-                _texts[i].mesh.colors.MemCpy(_colors, vertexOffset, count);
+                int count = text.mesh.vertexCount;
+                _lastKnownVertexCount[text] = count;
+                text.mesh.vertices.MemCpy(_vertices, vertexOffset, count);
+                text.mesh.colors.MemCpy(_colors, vertexOffset, count);
                 vertexOffset += count;
             }
         }
@@ -216,7 +220,7 @@ namespace TextTween
                     text.textBounds.max.x,
                     text.textBounds.max.y
                 );
-                for (int j = 0, l = 0; j < characterInfos.Length; j++)
+                for (int j = 0, l = 0; j < text.textInfo.characterCount; j++)
                 {
                     if (!characterInfos[j].isVisible)
                     {
@@ -269,7 +273,8 @@ namespace TextTween
         private void UpdateMeshes(
             IReadOnlyList<TMP_Text> texts,
             NativeArray<float3> vertices,
-            NativeArray<float4> colors
+            NativeArray<float4> colors,
+            TMP_Text toIgnore = null
         )
         {
             int offset = 0;
@@ -282,8 +287,15 @@ namespace TextTween
                 }
 
                 int count = text.mesh.vertexCount;
+                if (text == toIgnore)
+                {
+                    offset += _lastKnownVertexCount.GetValueOrDefault(text, count);
+                    continue;
+                }
+
                 text.mesh.SetVertices(vertices, offset, count);
                 text.mesh.SetColors(colors, offset, count);
+
                 offset += count;
 
                 TMP_MeshInfo[] meshInfos = text.textInfo.meshInfo;
@@ -307,9 +319,10 @@ namespace TextTween
         public void Dispose(IReadOnlyList<TMP_Text> texts)
         {
             DisposeArrays(texts);
+            _lastKnownVertexCount.Clear();
         }
 
-        private void DisposeArrays(IReadOnlyList<TMP_Text> texts, bool updateMeshes = true)
+        private void DisposeArrays(IReadOnlyList<TMP_Text> texts, TMP_Text toIgnore = null)
         {
             _jobHandle.Complete();
             if (_charData.IsCreated)
@@ -318,10 +331,7 @@ namespace TextTween
             }
             if (_vertices.IsCreated && _colors.IsCreated)
             {
-                if (updateMeshes)
-                {
-                    UpdateMeshes(texts, _vertices, _colors);
-                }
+                UpdateMeshes(texts, _vertices, _colors, toIgnore);
             }
             if (_vertices.IsCreated)
             {
@@ -338,7 +348,7 @@ namespace TextTween
         {
             int count = 0;
             TMP_CharacterInfo[] characterInfos = text.textInfo.characterInfo;
-            for (int j = 0; j < characterInfos.Length; j++)
+            for (int j = 0; j < text.textInfo.characterCount; j++)
             {
                 if (!characterInfos[j].isVisible)
                     continue;
