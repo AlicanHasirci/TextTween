@@ -36,9 +36,6 @@ namespace TextTween.Modifiers
         [FormerlySerializedAs("_scale")]
         public ScaleMask ScaleMask;
 
-        [Tooltip(
-            "When using Scale, set the X, Y and Z values to 0 to disable scaling on that axis."
-        )]
         [FormerlySerializedAs("_intensity")]
         public float3 Intensity;
 
