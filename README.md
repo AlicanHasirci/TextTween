@@ -68,3 +68,7 @@ Warps the lines of text according to intensity and curve provided over progress.
 | Ax1,000 | 4,327 | 2,985 | 3,391 |
 | Ax10,000 | 395 | 290 | 344 |
 | Ax1,000,000 | 14 | 14 | 15 |
+
+## Contributing
+
+This project uses [CSharpier](https://csharpier.com/) with the default configuration to enable an enforced, consistent style. If you would like to contribute, recommendation is to ensure that changed files are ran through CSharpier prior to merge. This can be done automatically through editor plugins, or, minimally, by installing a [pre-commit hook](https://pre-commit.com/#3-install-the-git-hook-scripts)
