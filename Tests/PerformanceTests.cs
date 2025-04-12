@@ -42,14 +42,17 @@
             );
 
             SetupGameObjects<ColorModifier>(
-                out TweenManager color,
+                out TextTweenManager color,
                 out TextMeshPro colorTextObject
             );
             SetupGameObjects<TransformModifier>(
-                out TweenManager transform,
+                out TextTweenManager transform,
                 out TextMeshPro transformTextObject
             );
-            SetupGameObjects<WarpModifier>(out TweenManager warp, out TextMeshPro warpTextObject);
+            SetupGameObjects<WarpModifier>(
+                out TextTweenManager warp,
+                out TextMeshPro warpTextObject
+            );
 
             int[] textLengths = { 1, 10, 100, 1_000, 10_000, 1000_000 };
             foreach (int textLength in textLengths)
@@ -67,12 +70,12 @@
             }
         }
 
-        private void SetupGameObjects<T>(out TweenManager tweenManager, out TextMeshPro text)
+        private void SetupGameObjects<T>(out TextTweenManager tweenManager, out TextMeshPro text)
             where T : CharModifier
         {
             GameObject tweenManagerObject = new(
                 $"TweenManager - {typeof(T).Name}",
-                typeof(TweenManager),
+                typeof(TextTweenManager),
                 typeof(T)
             );
             _spawned.Add(tweenManagerObject);
@@ -80,8 +83,8 @@
             _spawned.Add(textObject);
 
             text = textObject.GetComponent<TextMeshPro>();
-            tweenManager = tweenManagerObject.GetComponent<TweenManager>();
-            tweenManager.Texts = new TMP_Text[] { text };
+            tweenManager = tweenManagerObject.GetComponent<TextTweenManager>();
+            tweenManager.Texts = new List<TMP_Text> { text };
             T modifier = tweenManager.GetComponent<T>();
             SetupModifier(modifier);
             tweenManager.Modifiers = new List<CharModifier> { modifier };
@@ -136,11 +139,11 @@
         private static void RunTest(
             TimeSpan timeout,
             string text,
-            TweenManager color,
+            TextTweenManager color,
             TextMeshPro colorTextObject,
-            TweenManager transform,
+            TextTweenManager transform,
             TextMeshPro transformTextObject,
-            TweenManager warp,
+            TextTweenManager warp,
             TextMeshPro warpTextObject
         )
         {
@@ -154,7 +157,7 @@
 
             return;
 
-            string RunPerfTest(TweenManager tweenManager, TextMeshPro textObject)
+            string RunPerfTest(TextTweenManager tweenManager, TextMeshPro textObject)
             {
                 textObject.text = text;
                 // TODO: Figure out how to run this in a more fully-featured way such that we don't have to kick things
@@ -162,7 +165,7 @@
                 // Need to kick stuff, we're not operating in a full Unity context right now
                 textObject.ForceMeshUpdate(forceTextReparsing: true);
                 // Need to kick the TweenManager too
-                tweenManager.OnTextChanged(textObject);
+                tweenManager.Change(textObject);
 
                 int count = 0;
                 Stopwatch timer = Stopwatch.StartNew();
@@ -171,7 +174,7 @@
                     tweenManager.Progress = (float)(
                         timer.ElapsedMilliseconds / timeout.TotalMilliseconds
                     );
-                    tweenManager.ForceUpdate();
+                    tweenManager.Apply();
                     ++count;
                 } while (timer.Elapsed < timeout);
 

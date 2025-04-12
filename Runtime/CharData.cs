@@ -4,16 +4,14 @@ namespace TextTween
 {
     public struct CharData
     {
+        public float3 Position { get; }
         public float2 Interval { get; }
-        public int VertexIndex { get; }
-        public int VertexCount { get; }
         public float4 Bounds { get; }
 
-        public CharData(float2 interval, int vertexIndex, int vertexCount, float4 bounds)
+        public CharData(float3 position, float2 interval, float4 bounds)
         {
+            Position = position;
             Interval = interval;
-            VertexIndex = vertexIndex;
-            VertexCount = vertexCount;
             Bounds = bounds;
         }
     }
