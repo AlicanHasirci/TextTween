@@ -23,6 +23,11 @@ namespace TextTween
 
         public void Apply(NativeArray<float3> vertices, NativeArray<float4> colors)
         {
+            if (Text == null || Text.mesh == null)
+            {
+                return;
+            }
+
             Text.mesh.SetVertices(vertices, Offset, Length);
             Text.mesh.SetColors(colors, Offset, Length);
 
