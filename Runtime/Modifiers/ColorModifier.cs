@@ -66,13 +66,9 @@ namespace TextTween.Modifiers
             public void Execute(int index)
             {
                 CharData characterData = _data[index];
-                int vertexOffset = characterData.VertexIndex;
                 float p = Remap(_progress, characterData.Interval);
                 float4 color = _gradient.Evaluate(p);
-                for (int i = 0; i < characterData.VertexCount; i++)
-                {
-                    _colors[vertexOffset + i] *= color;
-                }
+                _colors[index] *= color;
             }
         }
     }
