@@ -27,7 +27,7 @@ jobs:
       - name: Check if version changed
         id: version_check
         run: |
-         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "Manual trigger detected. Skipping version check."
             NEW_VERSION=$(jq -r '.version' package.json)
             echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
