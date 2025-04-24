@@ -1,10 +1,10 @@
-using System;
-using Unity.Collections;
-using Unity.Mathematics;
-using UnityEngine;
-
 namespace TextTween.Native
 {
+    using System;
+    using Unity.Collections;
+    using Unity.Mathematics;
+    using UnityEngine;
+
     public struct NativeGradient : IDisposable
     {
         public bool IsCreated => _values.IsCreated;

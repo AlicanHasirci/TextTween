@@ -1,12 +1,12 @@
-using System;
-using System.Runtime.CompilerServices;
-using Unity.Collections;
-using Unity.Mathematics;
-using UnityEngine;
-using static Unity.Mathematics.math;
-
 namespace TextTween.Native
 {
+    using System;
+    using System.Runtime.CompilerServices;
+    using Unity.Collections;
+    using Unity.Mathematics;
+    using UnityEngine;
+    using static Unity.Mathematics.math;
+
     public struct NativeCurve : IDisposable
     {
         public bool IsCreated => _values.IsCreated;

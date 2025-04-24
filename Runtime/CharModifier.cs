@@ -1,12 +1,12 @@
-using System;
-using System.Runtime.CompilerServices;
-using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine;
-
 namespace TextTween
 {
+    using System;
+    using System.Runtime.CompilerServices;
+    using Unity.Collections;
+    using Unity.Jobs;
+    using Unity.Mathematics;
+    using UnityEngine;
+
     [ExecuteInEditMode]
     public abstract class CharModifier : MonoBehaviour, IDisposable
     {

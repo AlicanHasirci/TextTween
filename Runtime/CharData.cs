@@ -1,7 +1,7 @@
-using Unity.Mathematics;
-
 namespace TextTween
 {
+    using Unity.Mathematics;
+
     public struct CharData
     {
         public float3 Position { get; }

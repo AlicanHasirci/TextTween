@@ -88,9 +88,11 @@ namespace TextTween.Modifiers
                     new float3(1, 1, 1)
                 );
 
-                _vertices[index] -= offset;
-                _vertices[index] = math.mul(m, new float4(_vertices[index], 1)).xyz;
-                _vertices[index] += offset;
+                float3 vertex = _vertices[index];
+                vertex -= offset;
+                vertex = math.mul(m, new float4(vertex, 1)).xyz;
+                vertex += offset;
+                _vertices[index] = vertex;
             }
         }
     }

@@ -1,41 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using TMPro;
-using UnityEditorInternal;
-using UnityEngine;
-
 namespace TextTween.Editor
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using TMPro;
     using UnityEditor;
+    using UnityEditorInternal;
 
     [CustomEditor(typeof(TextTweenManager))]
     public class TextDataManagerInspector : Editor
     {
+        private TextTweenManager _manager;
         private SerializedProperty _textsProperty;
         private ReorderableList _reorderableList;
-
-        private readonly Lazy<MethodInfo> _add = new(
-            () =>
-                typeof(TextTweenManager).GetMethod(
-                    "Add",
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-                )
-        );
-
-        private readonly Lazy<MethodInfo> _remove = new(
-            () =>
-                typeof(TextTweenManager).GetMethod(
-                    "Remove",
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-                )
-        );
 
         private List<TMP_Text> _previous = new();
 
         private void OnEnable()
         {
+            _manager = (TextTweenManager)target;
             _textsProperty ??= serializedObject.FindProperty("Texts");
             for (int i = 0; i < _textsProperty.arraySize; i++)
             {
@@ -71,7 +53,7 @@ namespace TextTween.Editor
                     {
                         continue;
                     }
-                    _remove.Value.Invoke(target, new object[] { o });
+                    _manager.Remove(o);
                 }
                 foreach (TMP_Text o in add)
                 {
@@ -79,7 +61,7 @@ namespace TextTween.Editor
                     {
                         continue;
                     }
-                    _add.Value.Invoke(target, new object[] { o });
+                    _manager.Add(o);
                 }
                 _previous = current;
                 ((TextTweenManager)target).Apply();

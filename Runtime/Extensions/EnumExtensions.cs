@@ -6,11 +6,12 @@
    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  */
 
-using System;
-using System.Runtime.CompilerServices;
 
 namespace TextTween.Extensions
 {
+    using System;
+    using System.Runtime.CompilerServices;
+
     public static class EnumExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

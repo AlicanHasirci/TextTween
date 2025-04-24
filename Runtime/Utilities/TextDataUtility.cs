@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using TMPro;
-
 namespace TextTween.Utilities
 {
+    using System.Collections.Generic;
+    using TMPro;
+
     public static class TextDataUtility
     {
         public static int GetVertexCount(this TMP_Text text)

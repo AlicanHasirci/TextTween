@@ -1,9 +1,9 @@
-using UnityEditor;
-
 namespace TextTween.Editor
 {
+    using UnityEditor;
+
     [CustomEditor(typeof(CharModifier), true)]
-    public class ModifierEditor : UnityEditor.Editor
+    public class ModifierEditor : Editor
     {
         public override void OnInspectorGUI()
         {

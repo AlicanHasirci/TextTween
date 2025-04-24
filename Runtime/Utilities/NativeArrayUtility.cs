@@ -1,9 +1,9 @@
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Jobs;
-
 namespace TextTween.Utilities
 {
+    using Unity.Collections;
+    using Unity.Collections.LowLevel.Unsafe;
+    using Unity.Jobs;
+
     public static class NativeArrayUtility
     {
         public static unsafe void MemCpy<TS, TD>(
@@ -68,11 +68,19 @@ namespace TextTween.Utilities
                 {
                     return;
                 }
-                NativeArray<TA> newArray = new(length, Allocator.Persistent);
-                JobHandle handle = Move(ref array, ref newArray, 0, 0, array.Length);
-                handle.Complete();
-                array.Dispose();
-                array = newArray;
+
+                try
+                {
+                    NativeArray<TA> newArray = new(length, Allocator.Persistent);
+                    JobHandle handle = Move(ref array, ref newArray, 0, 0, array.Length);
+                    handle.Complete();
+                    array.Dispose();
+                    array = newArray;
+                }
+                catch
+                {
+                    array.Dispose();
+                }
             }
         }
 
