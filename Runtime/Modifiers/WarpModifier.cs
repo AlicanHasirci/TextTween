@@ -76,7 +76,7 @@ namespace TextTween.Modifiers
                 CharData characterData = _data[index];
                 float3 offset = Offset(_data, index, .5f);
                 float width = characterData.Bounds.z - characterData.Bounds.x;
-                if (width == 0)
+                if (width is 0 or float.NaN)
                 {
                     return;
                 }
