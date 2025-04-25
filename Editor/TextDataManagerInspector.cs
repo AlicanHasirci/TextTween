@@ -5,6 +5,7 @@ namespace TextTween.Editor
     using TMPro;
     using UnityEditor;
     using UnityEditorInternal;
+    using UnityEngine;
 
     [CustomEditor(typeof(TextTweenManager))]
     public class TextDataManagerInspector : Editor
@@ -18,7 +19,7 @@ namespace TextTween.Editor
         private void OnEnable()
         {
             _manager = (TextTweenManager)target;
-            _textsProperty ??= serializedObject.FindProperty("Texts");
+            _textsProperty = serializedObject.FindProperty(nameof(TextTweenManager.Texts));
             for (int i = 0; i < _textsProperty.arraySize; i++)
             {
                 _previous.Add(

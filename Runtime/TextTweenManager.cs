@@ -16,14 +16,11 @@ namespace TextTween
     [Serializable, ExecuteInEditMode]
     public class TextTweenManager : MonoBehaviour, IDisposable
     {
+        [SerializeField]
+        internal int BufferSize;
+
         [Range(0, 1f)]
         public float Progress;
-
-        [Range(0, 1f)]
-        public float Overlap;
-
-        [SerializeField]
-        private int _bufferSize;
 
         [SerializeField]
         internal List<TMP_Text> Texts;
@@ -47,8 +44,8 @@ namespace TextTween
 
         private void OnEnable()
         {
-            _original = new MeshArray(_bufferSize, Allocator.Persistent);
-            _modified = new MeshArray(_bufferSize, Allocator.Persistent);
+            _original = new MeshArray(BufferSize, Allocator.Persistent);
+            _modified = new MeshArray(BufferSize, Allocator.Persistent);
 
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(_onTextChange);
             TMPro_EventManager.TEXT_CHANGED_EVENT.Add(_onTextChange);
@@ -87,7 +84,7 @@ namespace TextTween
                 }
             }
             MeshData newData = new(tmp);
-            newData.Update(_original, last.Trail, Overlap);
+            newData.Update(_original, last.Trail);
             _meshData.Add(newData);
 
             Apply();
@@ -133,7 +130,7 @@ namespace TextTween
                 int to = from + delta;
                 Move(from, to, _meshData[^1].Trail - from).Complete();
             }
-            _meshData[index].Update(_original, _meshData[index].Offset, Overlap);
+            _meshData[index].Update(_original, _meshData[index].Offset);
 
             Apply();
         }

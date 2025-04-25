@@ -74,13 +74,13 @@ namespace TextTween.Modifiers
             public void Execute(int index)
             {
                 CharData characterData = _data[index];
-                float3 offset = Offset(_data, index, .5f);
-                float width = characterData.Bounds.z - characterData.Bounds.x;
-                if (width is 0 or float.NaN)
+                float width = characterData.TextBounds.Max.x - characterData.TextBounds.Min.x;
+                if (!characterData.IsValid() || width == 0)
                 {
                     return;
                 }
-                float x = (offset.x - characterData.Bounds.x) / width;
+                float3 offset = Offset(_data, index, .5f);
+                float x = (offset.x - characterData.TextBounds.Min.x) / width;
                 float p = Remap(_progress, characterData.Interval);
                 float y = _warpCurve.Evaluate(x) * p * _intensity;
                 float2 v = _warpCurve.Velocity(x);

@@ -11,7 +11,6 @@ namespace TextTween.Modifiers
     public class ColorModifier : CharModifier
     {
         [FormerlySerializedAs("_gradient")]
-        [SerializeField]
         public Gradient Gradient;
 
         private NativeGradient _nativeGradient;

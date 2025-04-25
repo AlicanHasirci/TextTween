@@ -29,10 +29,10 @@ namespace TextTween
             array.CopyTo(Text, Offset, Length);
         }
 
-        public void Update(MeshArray meshArray, int offset, float overlap)
+        public void Update(MeshArray meshArray, int offset)
         {
             int length = Text.GetVertexCount();
-            meshArray.CopyFrom(Text, length, offset, overlap);
+            meshArray.CopyFrom(Text, length, offset);
             Offset = offset;
             Length = length;
         }

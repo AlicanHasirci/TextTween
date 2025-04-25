@@ -114,6 +114,10 @@ namespace TextTween.Modifiers
             public void Execute(int index)
             {
                 CharData characterData = _data[index];
+                if (!characterData.IsValid())
+                {
+                    return;
+                }
                 float3 offset = Offset(_data, index, _pivot);
                 float p = _curve.Evaluate(Remap(_progress, characterData.Interval));
                 float4x4 m = GetTransformation(p);

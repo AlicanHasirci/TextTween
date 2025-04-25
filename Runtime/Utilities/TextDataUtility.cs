@@ -14,15 +14,17 @@ namespace TextTween.Utilities
             return text.mesh.vertexCount;
         }
 
-        public static bool Contains(this IEnumerable<MeshData> collection, TMP_Text text)
+        public static bool Contains(this IReadOnlyList<MeshData> collection, TMP_Text text)
         {
-            foreach (MeshData data in collection)
+            for (int i = 0; i < collection.Count; i++)
             {
+                MeshData data = collection[i];
                 if (data.Text == text)
                 {
                     return true;
                 }
             }
+
             return false;
         }
 

@@ -6,6 +6,7 @@ namespace TextTween
     using Unity.Collections;
     using Unity.Jobs;
     using Unity.Mathematics;
+    using Unity.Mathematics.Geometry;
     using Utilities;
 
     public class MeshArray : IDisposable
@@ -54,12 +55,14 @@ namespace TextTween
         public JobHandle Schedule(float progress, IReadOnlyList<CharModifier> modifiers)
         {
             JobHandle handle = new();
-            foreach (CharModifier modifier in modifiers)
+            for (int i = 0; i < modifiers.Count; i++)
             {
+                CharModifier modifier = modifiers[i];
                 if (!modifier.enabled)
                 {
                     continue;
                 }
+
                 handle = modifier.Schedule(progress, _vertices, _colors, _chars, handle);
             }
 
@@ -75,13 +78,13 @@ namespace TextTween
             _uvs2.CopyFrom(source._uvs2);
         }
 
-        public void CopyFrom(TMP_Text text, int length, int offset, float overlap)
+        public void CopyFrom(TMP_Text text, int length, int offset)
         {
             text.mesh.vertices.MemCpy(_vertices, offset, length);
             text.mesh.colors.MemCpy(_colors, offset, length);
             text.mesh.uv.MemCpy(_uvs0, offset, length);
             text.mesh.uv2.MemCpy(_uvs2, offset, length);
-            CreateCharData(text, offset, length, overlap);
+            CreateCharData(text, offset, length);
         }
 
         public void CopyTo(TMP_Text text, int offset, int length)
@@ -98,33 +101,25 @@ namespace TextTween
                 meshInfos[j].vertices = text.mesh.vertices;
             }
 
-            text.UpdateVertexData(
-                TMP_VertexDataUpdateFlags.Colors32 | TMP_VertexDataUpdateFlags.Vertices
-            );
+            text.UpdateVertexData(TMP_VertexDataUpdateFlags.All);
         }
 
-        private void CreateCharData(TMP_Text text, int offset, int length, float overlap)
+        private void CreateCharData(TMP_Text text, int offset, int length)
         {
             const int vertexPerChar = 4;
             TMP_CharacterInfo[] characterInfos = text.textInfo.characterInfo;
-            float totalTime = (characterInfos.Length - 1) * overlap + 1;
-            float charOffset = overlap / totalTime;
-            float charDuration = 1 / totalTime;
-            float4 bounds = new(
-                text.textBounds.min.x,
-                text.textBounds.min.y,
-                text.textBounds.max.x,
-                text.textBounds.max.y
-            );
-            for (
-                int i = 0, ci = 0;
-                i < length && ci < characterInfos.Length;
-                i++, ci = i / vertexPerChar
-            )
+            int charLength = characterInfos.Length;
+            MinMaxAABB textBounds = new(text.textBounds.min, text.textBounds.max);
+            for (int i = 0, ci = 0; i < length && ci < charLength; i++, ci = i / vertexPerChar)
             {
-                float cue = charOffset * ci;
-                float2 time = new(cue, cue + charDuration);
-                _chars[offset + i] = new CharData(_vertices[offset + i], time, bounds);
+                TMP_CharacterInfo characterInfo = characterInfos[ci];
+                MinMaxAABB charBounds = new(characterInfo.bottomRight, characterInfo.topLeft);
+                _chars[offset + i] = new CharData(
+                    new int2(ci, charLength),
+                    new float2(0, 1),
+                    charBounds,
+                    textBounds
+                );
             }
         }
 
