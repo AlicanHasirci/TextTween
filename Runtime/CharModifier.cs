@@ -29,7 +29,7 @@ namespace TextTween
         {
             int ci = index / 4;
             float3 min = chars[ci * 4].Position;
-            float3 max = chars[(ci * 4) + 2].Position;
+            float3 max = chars[ci * 4 + 2].Position;
             float2 size = new(max.x - min.x, max.y - min.y);
             return new float3(min.x + pivot.x * size.x, min.y + pivot.y * size.y, 0);
         }

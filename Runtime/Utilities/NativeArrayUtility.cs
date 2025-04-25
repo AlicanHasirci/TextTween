@@ -60,7 +60,11 @@ namespace TextTween.Utilities
         {
             if (!array.IsCreated)
             {
-                array = new NativeArray<TA>(length, Allocator.Persistent);
+                array = new NativeArray<TA>(
+                    length,
+                    Allocator.Persistent,
+                    NativeArrayOptions.UninitializedMemory
+                );
             }
             else
             {
@@ -71,7 +75,11 @@ namespace TextTween.Utilities
 
                 try
                 {
-                    NativeArray<TA> newArray = new(length, Allocator.Persistent);
+                    NativeArray<TA> newArray = new(
+                        length,
+                        Allocator.Persistent,
+                        NativeArrayOptions.UninitializedMemory
+                    );
                     JobHandle handle = Move(ref array, ref newArray, 0, 0, array.Length);
                     handle.Complete();
                     array.Dispose();

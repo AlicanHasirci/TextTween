@@ -23,6 +23,9 @@ namespace TextTween
         public float Overlap;
 
         [SerializeField]
+        private int _bufferSize;
+
+        [SerializeField]
         internal List<TMP_Text> Texts;
 
         [SerializeField]
@@ -44,8 +47,8 @@ namespace TextTween
 
         private void OnEnable()
         {
-            _original = new MeshArray(0, Allocator.Persistent);
-            _modified = new MeshArray(0, Allocator.Persistent);
+            _original = new MeshArray(_bufferSize, Allocator.Persistent);
+            _modified = new MeshArray(_bufferSize, Allocator.Persistent);
 
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(_onTextChange);
             TMPro_EventManager.TEXT_CHANGED_EVENT.Add(_onTextChange);
@@ -54,6 +57,16 @@ namespace TextTween
         private void OnDisable()
         {
             Dispose();
+        }
+
+        private void Update()
+        {
+            if (!Application.isPlaying || Mathf.Approximately(_progress, Progress))
+            {
+                return;
+            }
+
+            Apply();
         }
 
         public void Add(TMP_Text tmp)
@@ -133,6 +146,7 @@ namespace TextTween
             {
                 textData.Apply(_modified);
             }
+            _progress = Progress;
         }
 
         public void Allocate()

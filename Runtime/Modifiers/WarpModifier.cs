@@ -76,6 +76,10 @@ namespace TextTween.Modifiers
                 CharData characterData = _data[index];
                 float3 offset = Offset(_data, index, .5f);
                 float width = characterData.Bounds.z - characterData.Bounds.x;
+                if (width == 0)
+                {
+                    return;
+                }
                 float x = (offset.x - characterData.Bounds.x) / width;
                 float p = Remap(_progress, characterData.Interval);
                 float y = _warpCurve.Evaluate(x) * p * _intensity;
