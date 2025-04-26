@@ -233,6 +233,10 @@ namespace TextTween
             int vertexCount = 0;
             foreach (TMP_Text text in Texts)
             {
+                if (text == null)
+                {
+                    continue;
+                }
                 vertexCount += text.GetVertexCount();
             }
 
