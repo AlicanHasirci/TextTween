@@ -73,21 +73,21 @@ namespace TextTween.Utilities
                     return;
                 }
 
+                NativeArray<TA> newArray = new(
+                    length,
+                    Allocator.Persistent,
+                    NativeArrayOptions.UninitializedMemory
+                );
+                NativeArray<TA> originalArray = array;
                 try
                 {
-                    NativeArray<TA> newArray = new(
-                        length,
-                        Allocator.Persistent,
-                        NativeArrayOptions.UninitializedMemory
-                    );
-                    JobHandle handle = Move(ref array, ref newArray, 0, 0, array.Length);
+                    JobHandle handle = Move(ref originalArray, ref newArray, 0, 0, array.Length);
                     handle.Complete();
-                    array.Dispose();
-                    array = newArray;
                 }
-                catch
+                finally
                 {
-                    array.Dispose();
+                    array = newArray;
+                    originalArray.Dispose();
                 }
             }
         }

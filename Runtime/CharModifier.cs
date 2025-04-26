@@ -5,7 +5,6 @@ namespace TextTween
     using Unity.Collections;
     using Unity.Jobs;
     using Unity.Mathematics;
-    using Unity.Mathematics.Geometry;
     using UnityEngine;
 
     [ExecuteInEditMode]
@@ -28,7 +27,7 @@ namespace TextTween
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static float3 Offset(NativeArray<CharData> chars, int index, float2 pivot)
         {
-            MinMaxAABB bounds = chars[index].CharBounds;
+            TextTweenMinMaxAABB bounds = chars[index].CharBounds;
             float3 size = bounds.Max - bounds.Min;
             return new float3(
                 bounds.Min.x + size.x * pivot.x,

@@ -15,6 +15,7 @@
 
     public sealed class PerformanceTests
     {
+        private const int IterationsPerRun = 1_000;
         private readonly List<GameObject> _spawned = new();
 
         [TearDown]
@@ -22,7 +23,7 @@
         {
             foreach (GameObject gameObject in _spawned.Where(gameObject => gameObject != null))
             {
-                Object.Destroy(gameObject);
+                Object.DestroyImmediate(gameObject);
             }
             _spawned.Clear();
         }
@@ -171,11 +172,14 @@
                 Stopwatch timer = Stopwatch.StartNew();
                 do
                 {
-                    tweenManager.Progress = (float)(
-                        timer.ElapsedMilliseconds / timeout.TotalMilliseconds
-                    );
-                    tweenManager.Apply();
-                    ++count;
+                    // Do multiple passes per timer tick, checking the timer isn't a free operation
+                    float progress = (float)(timer.ElapsedMilliseconds / timeout.TotalMilliseconds);
+                    tweenManager.Progress = progress;
+                    for (int i = 0; i < IterationsPerRun; ++i)
+                    {
+                        tweenManager.Apply();
+                        ++count;
+                    }
                 } while (timer.Elapsed < timeout);
 
                 return FormatNumber((int)Math.Floor(count / timeout.TotalSeconds));

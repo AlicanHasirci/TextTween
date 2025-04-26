@@ -3,11 +3,12 @@ namespace TextTween.Extensions
     using System.Runtime.CompilerServices;
     using Unity.Mathematics;
     using Unity.Mathematics.Geometry;
+    using UnityEngine;
 
     public static class MathExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNaN(this MinMaxAABB value)
+        public static bool IsNaN(this TextTweenMinMaxAABB value)
         {
             return value.Min.IsNaN() || value.Max.IsNaN();
         }
@@ -16,6 +17,12 @@ namespace TextTween.Extensions
         public static bool IsNaN(this float3 value)
         {
             return float.IsNaN(value.x) || float.IsNaN(value.y) || float.IsNaN(value.z);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNaN(this Vector2 value)
+        {
+            return float.IsNaN(value.x) || float.IsNaN(value.y);
         }
     }
 }

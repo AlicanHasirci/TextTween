@@ -25,16 +25,20 @@ namespace TextTween
             {
                 return;
             }
-
             array.CopyTo(Text, Offset, Length);
         }
 
-        public void Update(MeshArray meshArray, int offset)
+        public bool Update(MeshArray meshArray, int offset)
         {
             int length = Text.GetVertexCount();
-            meshArray.CopyFrom(Text, length, offset);
+            bool success = meshArray.CopyFrom(Text, length, offset);
+            if (!success)
+            {
+                return false;
+            }
             Offset = offset;
             Length = length;
+            return true;
         }
     }
 }

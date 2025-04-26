@@ -2,20 +2,19 @@ namespace TextTween
 {
     using Extensions;
     using Unity.Mathematics;
-    using Unity.Mathematics.Geometry;
 
     public struct CharData
     {
         public int2 CharIndex { get; }
         public float2 Interval { get; set; }
-        public MinMaxAABB CharBounds { get; }
-        public MinMaxAABB TextBounds { get; }
+        public TextTweenMinMaxAABB CharBounds { get; }
+        public TextTweenMinMaxAABB TextBounds { get; }
 
         public CharData(
             int2 charIndex,
             float2 interval,
-            MinMaxAABB charBounds,
-            MinMaxAABB textBounds
+            TextTweenMinMaxAABB charBounds,
+            TextTweenMinMaxAABB textBounds
         )
         {
             CharIndex = charIndex;
