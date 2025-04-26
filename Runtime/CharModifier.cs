@@ -36,7 +36,7 @@ namespace TextTween
             );
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             Dispose();
         }
