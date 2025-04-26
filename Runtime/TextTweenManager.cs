@@ -16,11 +16,11 @@ namespace TextTween
     [Serializable, ExecuteInEditMode]
     public class TextTweenManager : MonoBehaviour, IDisposable
     {
-        [SerializeField]
-        internal int BufferSize;
-
         [Range(0, 1f)]
         public float Progress;
+
+        [SerializeField]
+        internal int BufferSize;
 
         [SerializeField]
         internal List<TMP_Text> Texts;
@@ -29,30 +29,31 @@ namespace TextTween
         internal List<CharModifier> Modifiers;
 
         [SerializeField]
-        private List<MeshData> _meshData = new();
-        private readonly Action<UnityEngine.Object> _onTextChange;
+        internal List<MeshData> MeshData = new();
 
-        private MeshArray _original;
-        private MeshArray _modified;
+        internal MeshArray Original;
+        internal MeshArray Modified;
 
         private float _progress;
+        private readonly Action<UnityEngine.Object> _onTextChange;
 
         public TextTweenManager()
         {
             _onTextChange = Change;
         }
 
-        private void OnEnable()
+        internal void OnEnable()
         {
-            _original = new MeshArray(BufferSize, Allocator.Persistent);
-            _modified = new MeshArray(BufferSize, Allocator.Persistent);
+            Original = new MeshArray(BufferSize, Allocator.Persistent);
+            Modified = new MeshArray(BufferSize, Allocator.Persistent);
 
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(_onTextChange);
             TMPro_EventManager.TEXT_CHANGED_EVENT.Add(_onTextChange);
         }
 
-        private void OnDisable()
+        internal void OnDisable()
         {
+            TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(_onTextChange);
             Dispose();
         }
 
@@ -68,15 +69,15 @@ namespace TextTween
 
         public void Add(TMP_Text tmp)
         {
-            if (tmp == null || _meshData.Contains(tmp))
+            if (tmp == null || MeshData.Contains(tmp))
             {
                 return;
             }
 
             Allocate();
 
-            MeshData last = MeshData.Empty;
-            foreach (MeshData data in _meshData)
+            MeshData last = TextTween.MeshData.Empty;
+            foreach (MeshData data in MeshData)
             {
                 if (data.Trail > last.Trail)
                 {
@@ -84,23 +85,23 @@ namespace TextTween
                 }
             }
             MeshData newData = new(tmp);
-            newData.Update(_original, last.Trail);
-            _meshData.Add(newData);
+            newData.Update(Original, last.Trail);
+            MeshData.Add(newData);
 
             Apply();
         }
 
         public void Remove(TMP_Text text)
         {
-            if (!_meshData.TryGetValue(text, out MeshData meshData))
+            if (!MeshData.TryGetValue(text, out MeshData meshData))
             {
                 return;
             }
 
-            meshData.Apply(_original);
-            _meshData.Remove(meshData);
+            meshData.Apply(Original);
+            MeshData.Remove(meshData);
 
-            int length = _original.Length - meshData.Trail;
+            int length = Original.Length - meshData.Trail;
             if (length <= 0)
             {
                 return;
@@ -115,7 +116,7 @@ namespace TextTween
                 return;
             TMP_Text tmp = (TMP_Text)obj;
 
-            int index = _meshData.GetIndex(tmp);
+            int index = MeshData.GetIndex(tmp);
             if (index < 0)
             {
                 return;
@@ -123,25 +124,25 @@ namespace TextTween
 
             Allocate();
 
-            int delta = tmp.GetVertexCount() - _meshData[index].Length;
-            if (delta != 0 && index < _meshData.Count - 1)
+            int delta = tmp.GetVertexCount() - MeshData[index].Length;
+            if (delta != 0 && index < MeshData.Count - 1)
             {
-                int from = _meshData[index + 1].Offset;
+                int from = MeshData[index + 1].Offset;
                 int to = from + delta;
-                Move(from, to, _meshData[^1].Trail - from).Complete();
+                Move(from, to, MeshData[^1].Trail - from).Complete();
             }
-            _meshData[index].Update(_original, _meshData[index].Offset);
+            MeshData[index].Update(Original, MeshData[index].Offset);
 
             Apply();
         }
 
         public void Apply()
         {
-            _modified.CopyFrom(_original);
-            _modified.Schedule(Progress, Modifiers).Complete();
-            foreach (MeshData textData in _meshData)
+            Modified.CopyFrom(Original);
+            Modified.Schedule(Progress, Modifiers).Complete();
+            foreach (MeshData textData in MeshData)
             {
-                textData.Apply(_modified);
+                textData.Apply(Modified);
             }
             _progress = Progress;
         }
@@ -154,14 +155,14 @@ namespace TextTween
                 vertexCount += text.GetVertexCount();
             }
 
-            _original.EnsureCapacity(vertexCount);
-            _modified.EnsureCapacity(vertexCount);
+            Original.EnsureCapacity(vertexCount);
+            Modified.EnsureCapacity(vertexCount);
         }
 
         private JobHandle Move(int from, int to, int length, JobHandle dependsOn = default)
         {
             int delta = to - from;
-            foreach (MeshData data in _meshData)
+            foreach (MeshData data in MeshData)
             {
                 if (data.Offset < from)
                 {
@@ -171,13 +172,13 @@ namespace TextTween
                 data.Offset += delta;
             }
 
-            return _original.Move(from, to, length, dependsOn);
+            return Original.Move(from, to, length, dependsOn);
         }
 
         public void Dispose()
         {
-            _original.Dispose();
-            _modified.Dispose();
+            Original.Dispose();
+            Modified.Dispose();
         }
     }
 }

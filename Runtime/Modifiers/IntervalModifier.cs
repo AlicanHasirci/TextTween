@@ -41,8 +41,9 @@ namespace TextTween.Modifiers
             public void Execute(int index)
             {
                 CharData data = _data[index];
-                float totalTime = (data.CharIndex.y - 1) * _overlap + 1;
-                float charOffset = _overlap / totalTime;
+                float difference = 1 - _overlap;
+                float totalTime = (data.CharIndex.y - 1) * difference + 1;
+                float charOffset = difference / totalTime;
                 float charDuration = 1 / totalTime;
                 float cue = charOffset * data.CharIndex.x;
                 data.Interval = new float2(cue, cue + charDuration);
