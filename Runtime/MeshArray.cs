@@ -2,7 +2,6 @@ namespace TextTween
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using TMPro;
     using Unity.Collections;
     using Unity.Jobs;
@@ -121,29 +120,11 @@ namespace TextTween
             TMP_MeshInfo[] meshInfos = text.textInfo.meshInfo;
             for (int i = 0; i < meshInfos.Length; i++)
             {
-                TMP_MeshInfo meshInfo = meshInfos[i];
-                if (meshInfo.colors32?.Length == text.mesh.colors32.Length)
-                {
-                    Array.Copy(text.mesh.colors32, meshInfo.colors32, length);
-                }
-                else
-                {
-                    meshInfo.colors32 = text.mesh.colors32.ToArray();
-                }
-
-                if (meshInfo.vertices?.Length == text.mesh.vertices.Length)
-                {
-                    Array.Copy(text.mesh.vertices, meshInfo.vertices, length);
-                }
-                else
-                {
-                    meshInfo.vertices = text.mesh.vertices.ToArray();
-                }
-
-                meshInfos[i] = meshInfo;
+                meshInfos[i].colors32 = text.mesh.colors32;
+                meshInfos[i].vertices = text.mesh.vertices;
             }
 
-            text.UpdateVertexData(TMP_VertexDataUpdateFlags.All);
+            text.UpdateVertexData(TMP_VertexDataUpdateFlags.All & (~TMP_VertexDataUpdateFlags.Uv4));
         }
 
         private void CreateCharData(TMP_Text text, int offset, int length)

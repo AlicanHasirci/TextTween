@@ -43,8 +43,8 @@ namespace TextTween.Utilities
         }
 
         public static JobHandle Move<TA>(
-            ref NativeArray<TA> src,
-            ref NativeArray<TA> dst,
+            NativeArray<TA> src,
+            NativeArray<TA> dst,
             int from,
             int to,
             int length,
@@ -73,21 +73,20 @@ namespace TextTween.Utilities
                     return;
                 }
 
+                using NativeArray<TA> originalArray = array;
                 NativeArray<TA> newArray = new(
                     length,
                     Allocator.Persistent,
                     NativeArrayOptions.UninitializedMemory
                 );
-                NativeArray<TA> originalArray = array;
                 try
                 {
-                    JobHandle handle = Move(ref originalArray, ref newArray, 0, 0, array.Length);
+                    JobHandle handle = Move(array, newArray, 0, 0, array.Length);
                     handle.Complete();
                 }
                 finally
                 {
                     array = newArray;
-                    originalArray.Dispose();
                 }
             }
         }

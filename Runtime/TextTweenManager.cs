@@ -170,10 +170,9 @@ namespace TextTween
                 return;
             }
 
-            int originalLength = _meshData[index].Length;
             Allocate();
 
-            int delta = tmp.GetVertexCount() - originalLength;
+            int delta = tmp.GetVertexCount() - _meshData[index].Length;
             if (delta != 0 && index < _meshData.Count - 1)
             {
                 int from = _meshData[index + 1].Offset;

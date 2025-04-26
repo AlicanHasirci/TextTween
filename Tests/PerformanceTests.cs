@@ -15,7 +15,7 @@
 
     public sealed class PerformanceTests
     {
-        private const int IterationsPerRun = 1_000;
+        private const int IterationsPerRun = 5;
         private readonly List<GameObject> _spawned = new();
 
         [TearDown]
@@ -55,7 +55,8 @@
                 out TextMeshPro warpTextObject
             );
 
-            int[] textLengths = { 1, 10, 100, 1_000, 10_000, 1000_000 };
+            // Can't have more than 65k characters in a TM_PRO
+            int[] textLengths = { 1, 10, 100, 1_000, 10_000, 65_000 / 4 };
             foreach (int textLength in textLengths)
             {
                 RunTest(
@@ -89,6 +90,7 @@
             T modifier = tweenManager.GetComponent<T>();
             SetupModifier(modifier);
             tweenManager.Modifiers = new List<CharModifier> { modifier };
+            tweenManager.Add(text);
         }
 
         // Modifiers need to have their relevant properties setup, or they'll throw doing runtime stuff
