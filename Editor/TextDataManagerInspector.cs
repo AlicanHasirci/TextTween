@@ -14,7 +14,6 @@ namespace TextTween.Editor
     {
         private TextTweenManager _manager;
         private SerializedProperty _textsProperty;
-        private SerializedProperty _modifiersProperty;
         private ReorderableList _reorderableList;
 
         private readonly List<TMP_Text> _previousTexts = new();
@@ -38,7 +37,11 @@ namespace TextTween.Editor
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
-            base.OnInspectorGUI();
+            DrawPropertiesExcluding(
+                serializedObject,
+                nameof(TextTweenManager.BufferSize),
+                nameof(TextTweenManager._meshData)
+            );
             if (EditorGUI.EndChangeCheck())
             {
                 CheckForAllChanges();
@@ -46,6 +49,7 @@ namespace TextTween.Editor
                 {
                     _manager.Apply();
                 }
+                serializedObject.ApplyModifiedProperties();
             }
         }
 

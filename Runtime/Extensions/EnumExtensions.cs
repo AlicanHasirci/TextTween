@@ -12,10 +12,10 @@ namespace TextTween.Extensions
     using System;
     using System.Runtime.CompilerServices;
 
-    public static class EnumExtensions
+    internal static class EnumExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasFlagNoAlloc<T>(this T value, T flag)
+        internal static bool HasFlagNoAlloc<T>(this T value, T flag)
             where T : unmanaged, Enum
         {
             ulong valueUnderlying = GetUInt64(value);

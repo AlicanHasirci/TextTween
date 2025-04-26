@@ -19,7 +19,6 @@ namespace TextTween
         private NativeArray<float2> _uvs2;
         private NativeArray<CharData> _chars;
 
-        private int _length;
         private readonly HashSet<CharModifier> _seen = new();
 
         public MeshArray(int length, Allocator allocator)
@@ -29,17 +28,15 @@ namespace TextTween
             _chars = new NativeArray<CharData>(length, allocator);
             _uvs0 = new NativeArray<float2>(length, allocator);
             _uvs2 = new NativeArray<float2>(length, allocator);
-            _length = length;
         }
 
-        public void EnsureAndApplyLength(int length)
+        public void EnsureCapacity(int length)
         {
             NativeArrayUtility.EnsureCapacity(ref _vertices, length);
             NativeArrayUtility.EnsureCapacity(ref _colors, length);
             NativeArrayUtility.EnsureCapacity(ref _chars, length);
             NativeArrayUtility.EnsureCapacity(ref _uvs0, length);
             NativeArrayUtility.EnsureCapacity(ref _uvs2, length);
-            _length = length;
         }
 
         public JobHandle Move(int from, int to, int length, JobHandle dependsOn = default)
@@ -64,7 +61,7 @@ namespace TextTween
             for (int i = 0; i < modifiers.Count; i++)
             {
                 CharModifier modifier = modifiers[i];
-                if (!modifier.enabled)
+                if (modifier == null || !modifier.enabled)
                 {
                     continue;
                 }

@@ -18,7 +18,6 @@ namespace TextTween
     public class TextTweenManager : MonoBehaviour, IDisposable
     {
         [SerializeField]
-        [HideInInspector]
         internal int BufferSize;
 
         [Range(0, 1f)]
@@ -31,8 +30,7 @@ namespace TextTween
         internal List<CharModifier> Modifiers = new();
 
         [SerializeField]
-        [HideInInspector]
-        private List<MeshData> _meshData = new();
+        internal List<MeshData> _meshData = new();
 
         private readonly Action<UnityEngine.Object> _onTextChange;
 
@@ -238,8 +236,8 @@ namespace TextTween
                 vertexCount += text.GetVertexCount();
             }
 
-            _original.EnsureAndApplyLength(vertexCount);
-            _modified.EnsureAndApplyLength(vertexCount);
+            _original.EnsureCapacity(vertexCount);
+            _modified.EnsureCapacity(vertexCount);
             BufferSize = vertexCount;
 
             if (Application.isEditor && !Application.isPlaying)
