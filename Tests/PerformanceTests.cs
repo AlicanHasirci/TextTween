@@ -1,4 +1,4 @@
-﻿namespace TextTween.Tests.Runtime
+﻿namespace TextTween.Tests
 {
 #if UNITY_EDITOR
     using System;
@@ -6,8 +6,8 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
-    using Modifiers;
     using NUnit.Framework;
+    using Modifiers;
     using TMPro;
     using UnityEngine;
     using Debug = UnityEngine.Debug;
@@ -15,6 +15,7 @@
 
     public sealed class PerformanceTests
     {
+        private const int IterationsPerRun = 5;
         private readonly List<GameObject> _spawned = new();
 
         [TearDown]
@@ -22,7 +23,7 @@
         {
             foreach (GameObject gameObject in _spawned.Where(gameObject => gameObject != null))
             {
-                Object.Destroy(gameObject);
+                Object.DestroyImmediate(gameObject);
             }
             _spawned.Clear();
         }
@@ -54,7 +55,8 @@
                 out TextMeshPro warpTextObject
             );
 
-            int[] textLengths = { 1, 10, 100, 1_000, 10_000, 1000_000 };
+            // Can't have more than 65k characters in a TM_PRO
+            int[] textLengths = { 1, 10, 100, 1_000, 10_000, 65_000 / 4 };
             foreach (int textLength in textLengths)
             {
                 RunTest(
@@ -88,6 +90,7 @@
             T modifier = tweenManager.GetComponent<T>();
             SetupModifier(modifier);
             tweenManager.Modifiers = new List<CharModifier> { modifier };
+            tweenManager.Add(text);
         }
 
         // Modifiers need to have their relevant properties setup, or they'll throw doing runtime stuff
@@ -171,11 +174,14 @@
                 Stopwatch timer = Stopwatch.StartNew();
                 do
                 {
-                    tweenManager.Progress = (float)(
-                        timer.ElapsedMilliseconds / timeout.TotalMilliseconds
-                    );
-                    tweenManager.Apply();
-                    ++count;
+                    // Do multiple passes per timer tick, checking the timer isn't a free operation
+                    float progress = (float)(timer.ElapsedMilliseconds / timeout.TotalMilliseconds);
+                    tweenManager.Progress = progress;
+                    for (int i = 0; i < IterationsPerRun; ++i)
+                    {
+                        tweenManager.Apply();
+                        ++count;
+                    }
                 } while (timer.Elapsed < timeout);
 
                 return FormatNumber((int)Math.Floor(count / timeout.TotalSeconds));
