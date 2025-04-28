@@ -12,6 +12,9 @@ namespace TextTween
     using Unity.Jobs;
     using UnityEngine;
     using Utilities;
+#if UNITY_EDITOR
+    using UnityEditor;
+#endif
 
     [Serializable, ExecuteInEditMode]
     public class TextTweenManager : MonoBehaviour, IDisposable
@@ -177,6 +180,9 @@ namespace TextTween
             if (Application.isEditor && !Application.isPlaying)
             {
                 BufferSize = capacity ?? CalculateCapacity(toIgnore);
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(this);
+#endif
             }
         }
 
