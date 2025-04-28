@@ -108,6 +108,8 @@ namespace TextTween
             }
 
             Move(meshData.Trail, meshData.Offset, length).Complete();
+
+            TryUpdateBufferSize(toIgnore: text);
         }
 
         internal void Change(UnityEngine.Object obj)
@@ -149,14 +151,33 @@ namespace TextTween
 
         public void Allocate()
         {
+            int capacity = CalculateCapacity();
+            Original.EnsureCapacity(capacity);
+            Modified.EnsureCapacity(capacity);
+            TryUpdateBufferSize(capacity);
+        }
+
+        private int CalculateCapacity(TMP_Text toIgnore = null)
+        {
             int vertexCount = 0;
             foreach (TMP_Text text in Texts)
             {
-                vertexCount += text.GetVertexCount();
+                if (text != null && toIgnore != text)
+                {
+                    vertexCount += text.GetVertexCount();
+                }
             }
 
-            Original.EnsureCapacity(vertexCount);
-            Modified.EnsureCapacity(vertexCount);
+            return vertexCount;
+        }
+
+        private void TryUpdateBufferSize(int? capacity = null, TMP_Text toIgnore = null)
+        {
+            // Update LKG of buffer size if we're in a place where serialization is ok
+            if (Application.isEditor && !Application.isPlaying)
+            {
+                BufferSize = capacity ?? CalculateCapacity(toIgnore);
+            }
         }
 
         private JobHandle Move(int from, int to, int length, JobHandle dependsOn = default)
