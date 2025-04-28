@@ -6,7 +6,7 @@ namespace TextTween.Extensions
     public static class MathExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNaN(this TextTweenMinMaxAABB value)
+        public static bool IsNaN(this MinMaxAABB value)
         {
             return value.Min.IsNaN() || value.Max.IsNaN();
         }

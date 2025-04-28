@@ -7,14 +7,14 @@ namespace TextTween
     {
         public int2 CharIndex { get; }
         public float2 Interval { get; set; }
-        public TextTweenMinMaxAABB CharBounds { get; }
-        public TextTweenMinMaxAABB TextBounds { get; }
+        public MinMaxAABB CharBounds { get; }
+        public MinMaxAABB TextBounds { get; }
 
         public CharData(
             int2 charIndex,
             float2 interval,
-            TextTweenMinMaxAABB charBounds,
-            TextTweenMinMaxAABB textBounds
+            MinMaxAABB charBounds,
+            MinMaxAABB textBounds
         )
         {
             CharIndex = charIndex;
