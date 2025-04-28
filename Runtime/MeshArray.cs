@@ -6,7 +6,6 @@ namespace TextTween
     using Unity.Collections;
     using Unity.Jobs;
     using Unity.Mathematics;
-    using Unity.Mathematics.Geometry;
     using Utilities;
 
     public class MeshArray : IDisposable
@@ -109,11 +108,14 @@ namespace TextTween
             const int vertexPerChar = 4;
             TMP_CharacterInfo[] characterInfos = text.textInfo.characterInfo;
             int charLength = characterInfos.Length;
-            MinMaxAABB textBounds = new(text.textBounds.min, text.textBounds.max);
+            TextTweenMinMaxAABB textBounds = new(text.textBounds.min, text.textBounds.max);
             for (int i = 0, ci = 0; i < length && ci < charLength; i++, ci = i / vertexPerChar)
             {
                 TMP_CharacterInfo characterInfo = characterInfos[ci];
-                MinMaxAABB charBounds = new(characterInfo.bottomRight, characterInfo.topLeft);
+                TextTweenMinMaxAABB charBounds = new(
+                    characterInfo.bottomRight,
+                    characterInfo.topLeft
+                );
                 _chars[offset + i] = new CharData(
                     new int2(ci, charLength),
                     new float2(0, 1),
