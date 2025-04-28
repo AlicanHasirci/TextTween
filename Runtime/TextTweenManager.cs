@@ -112,7 +112,7 @@ namespace TextTween
 
             Move(meshData.Trail, meshData.Offset, length).Complete();
 
-            TryUpdateBufferSize(toIgnore: text);
+            TryUpdateBufferSize();
         }
 
         internal void Change(UnityEngine.Object obj)
@@ -160,12 +160,12 @@ namespace TextTween
             TryUpdateBufferSize(capacity);
         }
 
-        private int CalculateCapacity(TMP_Text toIgnore = null)
+        private int CalculateCapacity()
         {
             int vertexCount = 0;
             foreach (TMP_Text text in Texts)
             {
-                if (text != null && toIgnore != text)
+                if (text != null)
                 {
                     vertexCount += text.GetVertexCount();
                 }
@@ -174,12 +174,12 @@ namespace TextTween
             return vertexCount;
         }
 
-        private void TryUpdateBufferSize(int? capacity = null, TMP_Text toIgnore = null)
+        internal void TryUpdateBufferSize(int? capacity = null)
         {
             // Update LKG of buffer size if we're in a place where serialization is ok
             if (Application.isEditor && !Application.isPlaying)
             {
-                BufferSize = capacity ?? CalculateCapacity(toIgnore);
+                BufferSize = capacity ?? CalculateCapacity();
 #if UNITY_EDITOR
                 EditorUtility.SetDirty(this);
 #endif

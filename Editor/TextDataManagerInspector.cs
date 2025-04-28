@@ -65,7 +65,9 @@ namespace TextTween.Editor
                     _manager.Add(o);
                 }
                 _previous = current;
-                ((TextTweenManager)target).Apply();
+                TextTweenManager tweenManager = ((TextTweenManager)target);
+                tweenManager.Apply();
+                tweenManager.TryUpdateBufferSize();
             }
         }
     }
