@@ -23,10 +23,10 @@ namespace TextTween
         internal int BufferSize;
 
         [SerializeField]
-        internal List<TMP_Text> Texts;
+        internal List<TMP_Text> Texts = new();
 
         [SerializeField]
-        internal List<CharModifier> Modifiers;
+        internal List<CharModifier> Modifiers = new();
 
         [SerializeField]
         internal List<MeshData> MeshData = new();
