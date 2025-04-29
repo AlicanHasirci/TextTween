@@ -35,7 +35,7 @@ namespace TextTween.Editor
                 || HasChanged(_previousModifiers, _modifiersProperty)
             )
             {
-                List<TMP_Text> current = Hydrate<TMP_Text>(_textsProperty);
+                List<TMP_Text> current = GetCurrentArrayValues<TMP_Text>(_textsProperty).ToList();
 
                 HashSet<TMP_Text> add = current.ToHashSet();
                 HashSet<TMP_Text> remove = _previousTexts.ToHashSet();
@@ -69,21 +69,18 @@ namespace TextTween.Editor
         private void HydrateCurrentState()
         {
             _previousTexts.Clear();
-            _previousTexts.AddRange(Hydrate<TMP_Text>(_textsProperty));
+            _previousTexts.AddRange(GetCurrentArrayValues<TMP_Text>(_textsProperty));
             _previousModifiers.Clear();
-            _previousModifiers.AddRange(Hydrate<CharModifier>(_modifiersProperty));
+            _previousModifiers.AddRange(GetCurrentArrayValues<CharModifier>(_modifiersProperty));
         }
 
-        private static List<T> Hydrate<T>(SerializedProperty property)
+        private static IEnumerable<T> GetCurrentArrayValues<T>(SerializedProperty property)
             where T : Object
         {
-            List<T> current = new(property.arraySize);
             for (int i = 0; i < property.arraySize; i++)
             {
-                current.Add(property.GetArrayElementAtIndex(i).objectReferenceValue as T);
+                yield return property.GetArrayElementAtIndex(i).objectReferenceValue as T;
             }
-
-            return current;
         }
 
         /*
