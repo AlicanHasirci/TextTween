@@ -34,8 +34,8 @@ namespace TextTween
 
         [Header("Advanced")]
         [Tooltip(
-            "The sum total number of vertices used for buffers across all Text instances being managed.\n"
-                + "Runtime buffer size will be the max of this value and ComputedBufferSize.\n"
+            "The sum total number of vertices used for buffers across all Text instances being managed.\n\n"
+                + "Runtime buffer size will be the max of this value and ComputedBufferSize.\n\n"
                 + "<color=yellow>Should only be set if you know your text is going to grow to some size in the future"
                 + "</color>"
         )]
