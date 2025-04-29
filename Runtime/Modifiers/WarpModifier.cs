@@ -1,5 +1,6 @@
 namespace TextTween.Modifiers
 {
+    using Extensions;
     using Native;
     using Unity.Burst;
     using Unity.Collections;
@@ -75,10 +76,12 @@ namespace TextTween.Modifiers
             {
                 CharData characterData = _data[index];
                 float width = characterData.TextBounds.Max.x - characterData.TextBounds.Min.x;
+
                 if (!characterData.IsValid() || width == 0)
                 {
                     return;
                 }
+
                 float3 offset = Offset(_data, index, .5f);
                 float x = (offset.x - characterData.TextBounds.Min.x) / width;
                 float p = Remap(_progress, characterData.Interval);
@@ -86,6 +89,12 @@ namespace TextTween.Modifiers
                 float2 v = _warpCurve.Velocity(x);
                 float2 t = math.normalize(new float2(v.x * width, v.y * p * _intensity));
                 float a = math.atan2(t.y, t.x);
+
+                if (float.IsNaN(a))
+                {
+                    return;
+                }
+
                 float4x4 m = float4x4.TRS(
                     new float3(0, y, 0),
                     quaternion.Euler(0, 0, a),
@@ -96,6 +105,11 @@ namespace TextTween.Modifiers
                 vertex -= offset;
                 vertex = math.mul(m, new float4(vertex, 1)).xyz;
                 vertex += offset;
+
+                if (vertex.IsNaN())
+                {
+                    vertex = float3.zero;
+                }
                 _vertices[index] = vertex;
             }
         }
