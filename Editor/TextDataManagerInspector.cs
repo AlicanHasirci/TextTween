@@ -5,7 +5,6 @@ namespace TextTween.Editor
     using TMPro;
     using UnityEditor;
     using UnityEditorInternal;
-    using UnityEngine;
 
     [CustomEditor(typeof(TextTweenManager))]
     public class TextDataManagerInspector : Editor
