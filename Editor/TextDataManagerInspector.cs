@@ -11,7 +11,6 @@ namespace TextTween.Editor
         private TextTweenManager _manager;
         private SerializedProperty _textsProperty;
         private SerializedProperty _modifiersProperty;
-        private ReorderableList _reorderableList;
 
         private readonly List<TMP_Text> _previousTexts = new();
         private readonly List<CharModifier> _previousModifiers = new();
@@ -75,7 +74,7 @@ namespace TextTween.Editor
         }
 
         private static IEnumerable<T> GetCurrentArrayValues<T>(SerializedProperty property)
-            where T : Object
+            where T : UnityEngine.Object
         {
             for (int i = 0; i < property.arraySize; i++)
             {
@@ -85,10 +84,12 @@ namespace TextTween.Editor
 
         /*
             For some reason, Editor ChangeCheck does not properly identify when users drag elements into a list.
-            So we have to resort to something like this
+            So we have to resort to something like this.
+            
+            Preference is to have non-garbage generating code (like this) in the OnGUI checks for maximum performance.
          */
         private static bool HasChanged<T>(List<T> previous, SerializedProperty property)
-            where T : Object
+            where T : UnityEngine.Object
         {
             if (property.arraySize != previous.Count)
             {
