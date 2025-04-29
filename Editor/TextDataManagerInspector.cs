@@ -30,6 +30,7 @@ namespace TextTween.Editor
 
         public override void OnInspectorGUI()
         {
+            TextTweenManager tweenManager = ((TextTweenManager)target);
             EditorGUI.BeginChangeCheck();
             base.OnInspectorGUI();
             if (EditorGUI.EndChangeCheck())
@@ -65,10 +66,17 @@ namespace TextTween.Editor
                     _manager.Add(o);
                 }
                 _previous = current;
-                TextTweenManager tweenManager = ((TextTweenManager)target);
                 tweenManager.Apply();
-                tweenManager.TryUpdateComputedBufferSize();
             }
+            /*
+                Change check is failing us in two cases:
+                    1. Users drag a text element into `Texts`. This is not caught and the buffer size is not updated.
+                    2. Users remove a text element from `Texts. From my testing, TweenManager still knows about the
+                        state *previous* to the removal, so the calculated buffer size is incorrect.
+                Buffer size calculation is important, cheap, and change-aware, it's ok to run this OnInspectorGUI to
+                ensure proper buffer size.
+             */
+            tweenManager.TryUpdateComputedBufferSize();
         }
     }
 }

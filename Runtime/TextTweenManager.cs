@@ -196,8 +196,13 @@ namespace TextTween
             // Update LKG of buffer size if we're in a place where serialization is ok (game not playing)
             if (!Application.isPlaying)
             {
-                ComputedBufferSize = capacity ?? CalculateCapacity();
-                EditorUtility.SetDirty(this);
+                int oldBufferSize = ComputedBufferSize;
+                int newBufferSize = capacity ?? CalculateCapacity();
+                if (oldBufferSize != newBufferSize)
+                {
+                    ComputedBufferSize = newBufferSize;
+                    EditorUtility.SetDirty(this);
+                }
             }
 #endif
         }
