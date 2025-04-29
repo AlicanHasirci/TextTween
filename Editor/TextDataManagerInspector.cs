@@ -31,7 +31,11 @@ namespace TextTween.Editor
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
-            base.OnInspectorGUI();
+            DrawPropertiesExcluding(
+                serializedObject,
+                nameof(TextTweenManager.BufferSize),
+                nameof(TextTweenManager.MeshData)
+            );
             if (EditorGUI.EndChangeCheck())
             {
                 List<TMP_Text> current = new(_textsProperty.arraySize);
