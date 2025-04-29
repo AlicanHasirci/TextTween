@@ -36,6 +36,7 @@ namespace TextTween.Editor
                 nameof(TextTweenManager.BufferSize),
                 nameof(TextTweenManager.MeshData)
             );
+            serializedObject.ApplyModifiedProperties();
             if (EditorGUI.EndChangeCheck())
             {
                 List<TMP_Text> current = new(_textsProperty.arraySize);
