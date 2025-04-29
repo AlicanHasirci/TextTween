@@ -29,24 +29,26 @@ namespace TextTween.Utilities
         }
 
         public static bool TryGetValue(
-            this IEnumerable<MeshData> collection,
+            this IReadOnlyList<MeshData> collection,
             TMP_Text text,
             out MeshData meshData
         )
         {
-            meshData = default;
-            foreach (MeshData data in collection)
+            for (int i = 0; i < collection.Count; i++)
             {
+                MeshData data = collection[i];
                 if (data.Text == text)
                 {
                     meshData = data;
                     return true;
                 }
             }
+
+            meshData = default;
             return false;
         }
 
-        public static int GetIndex(this IList<MeshData> collection, TMP_Text text)
+        public static int GetIndex(this IReadOnlyList<MeshData> collection, TMP_Text text)
         {
             for (int i = 0; i < collection.Count; i++)
             {
