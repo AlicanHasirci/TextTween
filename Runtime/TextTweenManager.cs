@@ -244,7 +244,7 @@ namespace TextTween
                     continue;
                 }
 
-                data.Offset += delta;
+                data._offset += delta;
             }
 
             return Original.Move(from, to, length, dependsOn);
