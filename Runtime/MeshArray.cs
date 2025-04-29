@@ -57,7 +57,7 @@ namespace TextTween
             for (int i = 0; i < modifiers.Count; i++)
             {
                 CharModifier modifier = modifiers[i];
-                if (!modifier.enabled)
+                if (modifier == null || !modifier.enabled)
                 {
                     continue;
                 }

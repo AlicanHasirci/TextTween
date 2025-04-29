@@ -80,7 +80,10 @@ namespace TextTween
         {
             foreach (TMP_Text text in Texts)
             {
-                text.ForceMeshUpdate(true);
+                if (text != null)
+                {
+                    text.ForceMeshUpdate(true);
+                }
             }
         }
 
