@@ -61,6 +61,22 @@ namespace TextTween
 
         internal void OnEnable()
         {
+            /*
+                It's very likely that we'll be parent components of the TMP texts that we're managing. In some cases, that
+                means we'll be enabled before they are, and their state will be dirty. I've run into several cases in
+                the editor where, without having the text's mesh updated, our internals will try to interact with TMP
+                and TMP internals will be non-initialized and throw null reference exceptions.
+                
+                To avoid this, force-update the meshes to ensure we're in a known-good state.
+             */
+            foreach (TMP_Text text in Texts)
+            {
+                if (text != null)
+                {
+                    text.ForceMeshUpdate(ignoreActiveState: true);
+                }
+            }
+
             int bufferSize = Math.Max(ExplicitBufferSize, ComputedBufferSize);
             bufferSize = Math.Max(0, bufferSize);
             Original = new MeshArray(bufferSize, Allocator.Persistent);
