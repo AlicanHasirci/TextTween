@@ -27,7 +27,6 @@ namespace TextTween.Editor
         {
             TextTweenManager tweenManager = ((TextTweenManager)target);
             serializedObject.Update();
-            EditorGUI.BeginChangeCheck();
             DrawPropertiesExcluding(serializedObject, nameof(TextTweenManager.MeshData));
             if (
                 serializedObject.ApplyModifiedProperties()
