@@ -69,25 +69,17 @@ namespace TextTween
                 
                 To avoid this, force-update the meshes to ensure we're in a known-good state.
              */
-            int capacity = CalculateCapacity();
-            TryUpdateComputedBufferSize(capacity);
-            
-            int bufferSize = Math.Max(ExplicitBufferSize, ComputedBufferSize);
-            bufferSize = Math.Max(0, bufferSize);
-            Original = new MeshArray(bufferSize, Allocator.Persistent);
-            Modified = new MeshArray(bufferSize, Allocator.Persistent);
-            
-            Original.EnsureCapacity(capacity);
-            Modified.EnsureCapacity(capacity);
-            
             foreach (MeshData meshData in MeshData)
             {
                 if (meshData.Text != null)
                 {
                     meshData.Text.ForceMeshUpdate(ignoreActiveState: true);
-                    meshData.Update(Original, meshData.Offset);
                 }
             }
+
+            Allocate();
+
+            CheckForMeshChanges();
 
             Apply();
 
@@ -171,26 +163,28 @@ namespace TextTween
         {
             if (Texts == null)
                 return;
-            TMP_Text tmp = (TMP_Text)obj;
-
-            int index = MeshData.GetIndex(tmp);
-            if (index < 0)
-            {
-                return;
-            }
 
             Allocate();
 
-            int delta = tmp.GetVertexCount() - MeshData[index].Length;
-            if (delta != 0 && index < MeshData.Count - 1)
-            {
-                int from = MeshData[index + 1].Offset;
-                int to = from + delta;
-                Move(from, to, MeshData[^1].Trail - from).Complete();
-            }
-            MeshData[index].Update(Original, MeshData[index].Offset);
+            CheckForMeshChanges();
 
             Apply();
+        }
+
+        internal void CheckForMeshChanges()
+        {
+            for (int i = 0; i < MeshData.Count; i++)
+            {
+                MeshData meshData = MeshData[i];
+                int delta = meshData.Text.GetVertexCount() - meshData.Length;
+                if (delta != 0 && i < MeshData.Count - 1)
+                {
+                    int from = MeshData[i + 1].Offset;
+                    int to = from + delta;
+                    Move(from, to, MeshData[^1].Trail - from).Complete();
+                }
+                meshData.Update(Original, meshData.Offset);
+            }
         }
 
         public void Apply()
@@ -207,9 +201,21 @@ namespace TextTween
         public void Allocate()
         {
             int capacity = CalculateCapacity();
-            Original.EnsureCapacity(capacity);
-            Modified.EnsureCapacity(capacity);
+            EnsureCapacity(ref Original, capacity);
+            EnsureCapacity(ref Modified, capacity);
             TryUpdateComputedBufferSize(capacity);
+        }
+
+        private static void EnsureCapacity(ref MeshArray meshArray, int capacity)
+        {
+            if (meshArray == null)
+            {
+                meshArray = new MeshArray(capacity, Allocator.Persistent);
+            }
+            else
+            {
+                meshArray.EnsureCapacity(capacity);
+            }
         }
 
         private int CalculateCapacity()
