@@ -26,10 +26,11 @@ namespace TextTween.Editor
         public override void OnInspectorGUI()
         {
             TextTweenManager tweenManager = ((TextTweenManager)target);
+            serializedObject.Update();
             EditorGUI.BeginChangeCheck();
-            base.OnInspectorGUI();
+            DrawPropertiesExcluding(serializedObject, nameof(TextTweenManager.MeshData));
             if (
-                EditorGUI.EndChangeCheck()
+                serializedObject.ApplyModifiedProperties()
                 || HasChanged(_previousTexts, _textsProperty)
                 || HasChanged(_previousModifiers, _modifiersProperty)
             )
