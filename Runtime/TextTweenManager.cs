@@ -69,18 +69,27 @@ namespace TextTween
                 
                 To avoid this, force-update the meshes to ensure we're in a known-good state.
              */
-            foreach (TMP_Text text in Texts)
-            {
-                if (text != null)
-                {
-                    text.ForceMeshUpdate(ignoreActiveState: true);
-                }
-            }
-
+            int capacity = CalculateCapacity();
+            TryUpdateComputedBufferSize(capacity);
+            
             int bufferSize = Math.Max(ExplicitBufferSize, ComputedBufferSize);
             bufferSize = Math.Max(0, bufferSize);
             Original = new MeshArray(bufferSize, Allocator.Persistent);
             Modified = new MeshArray(bufferSize, Allocator.Persistent);
+            
+            Original.EnsureCapacity(capacity);
+            Modified.EnsureCapacity(capacity);
+            
+            foreach (MeshData meshData in MeshData)
+            {
+                if (meshData.Text != null)
+                {
+                    meshData.Text.ForceMeshUpdate(ignoreActiveState: true);
+                    meshData.Update(Original, meshData.Offset);
+                }
+            }
+
+            Apply();
 
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(_onTextChange);
             TMPro_EventManager.TEXT_CHANGED_EVENT.Add(_onTextChange);
