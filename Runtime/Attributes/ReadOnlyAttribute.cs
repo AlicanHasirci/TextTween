@@ -5,5 +5,5 @@
     /// <summary>
     ///     TextTween internal, simple, read-only attribute. Does not support complex types.
     /// </summary>
-    public sealed class ReadOnlyAttribute : PropertyAttribute { }
+    internal sealed class ReadOnlyAttribute : PropertyAttribute { }
 }
