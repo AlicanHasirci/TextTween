@@ -1,9 +1,11 @@
 namespace TextTween.Editor
 {
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using TMPro;
     using UnityEditor;
+    using UnityEngine;
 
     [CustomEditor(typeof(TextTweenManager))]
     public class TextDataManagerInspector : Editor
@@ -15,6 +17,11 @@ namespace TextTween.Editor
         private readonly List<TMP_Text> _previousTexts = new();
         private readonly List<CharModifier> _previousModifiers = new();
 
+        private readonly List<TMP_Text> _textsBuffer = new();
+        private readonly List<CharModifier> _modifiersBuffer = new();
+
+        private GUIStyle _impactButtonStyle;
+
         private void OnEnable()
         {
             _manager = (TextTweenManager)target;
@@ -25,9 +32,17 @@ namespace TextTween.Editor
 
         public override void OnInspectorGUI()
         {
+            _impactButtonStyle ??= new GUIStyle(GUI.skin.button)
+            {
+                normal = { textColor = Color.yellow },
+                fontStyle = FontStyle.Bold,
+            };
+
             TextTweenManager tweenManager = ((TextTweenManager)target);
             serializedObject.Update();
             DrawPropertiesExcluding(serializedObject, nameof(TextTweenManager.MeshData));
+            RenderInvalidButtons(tweenManager);
+            RenderSyncButtons(tweenManager);
             if (
                 serializedObject.ApplyModifiedProperties()
                 || HasChanged(_previousTexts, _textsProperty)
@@ -60,6 +75,109 @@ namespace TextTween.Editor
                 }
                 tweenManager.Apply();
                 HydrateCurrentState();
+            }
+        }
+
+        private void RenderInvalidButtons(TextTweenManager tweenManager)
+        {
+            EditorGUILayout.BeginHorizontal();
+            try
+            {
+                CheckAndRemoveNulls(tweenManager.Texts, "Remove Null Texts");
+                CheckAndRemoveNulls(tweenManager.Modifiers, "Remove Null Modifiers");
+            }
+            finally
+            {
+                EditorGUILayout.EndHorizontal();
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            try
+            {
+                CheckAndRemoveDuplicates(tweenManager.Texts, "Remove Duplicate Texts");
+                CheckAndRemoveDuplicates(tweenManager.Modifiers, "Remove Duplicate Modifiers");
+            }
+            finally
+            {
+                EditorGUILayout.EndHorizontal();
+            }
+
+            return;
+        }
+
+        private void CheckAndRemoveDuplicates<T>(List<T> list, string buttonText)
+            where T : Object
+        {
+            if (list.Distinct().Count() == list.Count)
+            {
+                return;
+            }
+            if (GUILayout.Button(buttonText, _impactButtonStyle))
+            {
+                Dictionary<T, int> duplicates = new();
+                foreach (T element in list)
+                {
+                    int count = duplicates.GetValueOrDefault(element, 0);
+                    duplicates[element] = count + 1;
+                }
+
+                // Remove items from the end
+                for (int i = list.Count - 1; 0 <= i; --i)
+                {
+                    T element = list[i];
+                    int count = duplicates.GetValueOrDefault(element, 0);
+                    if (1 < count)
+                    {
+                        list.RemoveAt(i);
+                        --count;
+                        duplicates[element] = count;
+                    }
+                }
+            }
+        }
+
+        private void CheckAndRemoveNulls<T>(List<T> list, string buttonText)
+            where T : Object
+        {
+            if (!list.Exists(e => e == null))
+            {
+                return;
+            }
+
+            if (GUILayout.Button(buttonText, _impactButtonStyle))
+            {
+                list.RemoveAll(element => element == null);
+            }
+        }
+
+        private void RenderSyncButtons(TextTweenManager tweenManager)
+        {
+            EditorGUILayout.BeginHorizontal();
+            try
+            {
+                tweenManager.GetComponentsInChildren(true, _textsBuffer);
+                if (!_textsBuffer.ToImmutableHashSet().SetEquals(tweenManager.Texts))
+                {
+                    if (GUILayout.Button("Sync Texts", EditorStyles.miniButton))
+                    {
+                        tweenManager.Texts.Clear();
+                        tweenManager.Texts.AddRange(_textsBuffer);
+                    }
+                }
+
+                tweenManager.GetComponentsInChildren(true, _modifiersBuffer);
+                if (!_modifiersBuffer.ToImmutableHashSet().SetEquals(tweenManager.Modifiers))
+                {
+                    if (GUILayout.Button("Sync Modifiers", EditorStyles.miniButton))
+                    {
+                        tweenManager.Modifiers.Clear();
+                        tweenManager.Modifiers.AddRange(_modifiersBuffer);
+                    }
+                }
+            }
+            finally
+            {
+                EditorGUILayout.EndHorizontal();
             }
         }
 
