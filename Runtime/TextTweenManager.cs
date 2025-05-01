@@ -20,6 +20,7 @@ namespace TextTween
     [Serializable, ExecuteInEditMode]
     public class TextTweenManager : MonoBehaviour, IDisposable
     {
+        [Header("Tween Config")]
         [Range(0, 1f)]
         public float Progress;
 
@@ -29,15 +30,12 @@ namespace TextTween
         [SerializeField]
         internal List<CharModifier> Modifiers = new();
 
-        [SerializeField]
-        internal List<MeshData> MeshData = new();
-
         [Header("Advanced")]
         [Tooltip(
-            "The sum total number of vertices used for buffers across all Text instances being managed.\n\n"
-                + "Runtime buffer size will be the max of this value and ComputedBufferSize.\n\n"
-                + "<color=yellow>Should only be set if you know your text is going to grow to some size in the future"
-                + "</color>"
+            "<color=yellow>Should only be set if you know your text is going to grow to some size in the future."
+                + "</color>\n\n"
+                + "Explicit Buffer Size is the sum total number of vertices used for buffers across all Text instances "
+                + "being managed.\n\nRuntime buffer size will be the max of this value and ComputedBufferSize."
         )]
         public int ExplicitBufferSize = -1;
 
@@ -45,8 +43,12 @@ namespace TextTween
             "Auto-configured by TextTween internals, changes to this value will be overwritten."
         )]
         [FormerlySerializedAs("BufferSize")]
+        [Attributes.ReadOnly]
         [SerializeField]
         internal int ComputedBufferSize;
+
+        [SerializeField]
+        internal List<MeshData> MeshData = new();
 
         internal MeshArray Original;
         internal MeshArray Modified;
@@ -155,14 +157,15 @@ namespace TextTween
             }
 
             Move(meshData.Trail, meshData.Offset, length).Complete();
-
             TryUpdateComputedBufferSize();
         }
 
         internal void Change(UnityEngine.Object obj)
         {
             if (Texts == null)
+            {
                 return;
+            }
 
             Allocate();
 
