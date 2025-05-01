@@ -59,8 +59,6 @@ namespace TextTween.Editor
                     _manager.Add(o);
                 }
                 tweenManager.Apply();
-                // Force buffer re-computation, when Remove() is called, Texts appears to be using previous Texts state.
-                tweenManager.TryUpdateComputedBufferSize();
                 HydrateCurrentState();
             }
         }

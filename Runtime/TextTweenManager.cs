@@ -157,7 +157,6 @@ namespace TextTween
             }
 
             Move(meshData.Trail, meshData.Offset, length).Complete();
-            TryUpdateComputedBufferSize();
         }
 
         internal void Change(UnityEngine.Object obj)
@@ -179,6 +178,10 @@ namespace TextTween
             for (int i = 0; i < MeshData.Count; i++)
             {
                 MeshData meshData = MeshData[i];
+                if (meshData.Text == null)
+                {
+                    continue;
+                }
                 int delta = meshData.Text.GetVertexCount() - meshData.Length;
                 if (delta != 0 && i < MeshData.Count - 1)
                 {
@@ -206,7 +209,6 @@ namespace TextTween
             int capacity = CalculateCapacity();
             EnsureCapacity(ref Original, capacity);
             EnsureCapacity(ref Modified, capacity);
-            TryUpdateComputedBufferSize(capacity);
         }
 
         private static void EnsureCapacity(ref MeshArray meshArray, int capacity)
@@ -231,25 +233,14 @@ namespace TextTween
                     vertexCount += text.GetVertexCount();
                 }
             }
-
-            return vertexCount;
-        }
-
-        internal void TryUpdateComputedBufferSize(int? capacity = null)
-        {
-#if UNITY_EDITOR
-            // Update LKG of buffer size if we're in a place where serialization is ok (game not playing)
-            if (!Application.isPlaying)
+            if (ComputedBufferSize != vertexCount)
             {
-                int oldBufferSize = ComputedBufferSize;
-                int newBufferSize = capacity ?? CalculateCapacity();
-                if (oldBufferSize != newBufferSize)
-                {
-                    ComputedBufferSize = newBufferSize;
-                    EditorUtility.SetDirty(this);
-                }
-            }
+                ComputedBufferSize = vertexCount;
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(this);
 #endif
+            }
+            return Math.Max(ComputedBufferSize, ExplicitBufferSize);
         }
 
         private JobHandle Move(int from, int to, int length, JobHandle dependsOn = default)
