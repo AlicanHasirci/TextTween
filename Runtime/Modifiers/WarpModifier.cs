@@ -77,7 +77,7 @@ namespace TextTween.Modifiers
                 CharData characterData = _data[index];
                 float width = characterData.TextBounds.Max.x - characterData.TextBounds.Min.x;
 
-                if (!characterData.IsValid() || width == 0)
+                if (!characterData.IsValid() || width < 1)
                 {
                     return;
                 }
