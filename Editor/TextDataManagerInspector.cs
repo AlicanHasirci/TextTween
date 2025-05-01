@@ -101,8 +101,25 @@ namespace TextTween.Editor
             {
                 EditorGUILayout.EndHorizontal();
             }
+        }
 
-            return;
+        private void RenderSyncButtons(TextTweenManager tweenManager)
+        {
+            EditorGUILayout.BeginHorizontal();
+            try
+            {
+                CheckAndSync(tweenManager, _textsBuffer, tweenManager.Texts, "Sync Texts");
+                CheckAndSync(
+                    tweenManager,
+                    _modifiersBuffer,
+                    tweenManager.Modifiers,
+                    "Sync Modifiers"
+                );
+            }
+            finally
+            {
+                EditorGUILayout.EndHorizontal();
+            }
         }
 
         private void CheckAndRemoveDuplicates<T>(List<T> list, string buttonText)
@@ -114,23 +131,23 @@ namespace TextTween.Editor
             }
             if (GUILayout.Button(buttonText, _impactButtonStyle))
             {
-                Dictionary<T, int> duplicates = new();
+                Dictionary<T, int> elementCounts = new();
                 foreach (T element in list)
                 {
-                    int count = duplicates.GetValueOrDefault(element, 0);
-                    duplicates[element] = count + 1;
+                    int count = elementCounts.GetValueOrDefault(element, 0);
+                    elementCounts[element] = count + 1;
                 }
 
                 // Remove items from the end
                 for (int i = list.Count - 1; 0 <= i; --i)
                 {
                     T element = list[i];
-                    int count = duplicates.GetValueOrDefault(element, 0);
+                    int count = elementCounts.GetValueOrDefault(element, 0);
                     if (1 < count)
                     {
                         list.RemoveAt(i);
                         --count;
-                        duplicates[element] = count;
+                        elementCounts[element] = count;
                     }
                 }
             }
@@ -150,34 +167,23 @@ namespace TextTween.Editor
             }
         }
 
-        private void RenderSyncButtons(TextTweenManager tweenManager)
+        private static void CheckAndSync<T>(
+            TextTweenManager tweenManager,
+            List<T> buffer,
+            List<T> list,
+            string buttonText
+        )
+            where T : Object
         {
-            EditorGUILayout.BeginHorizontal();
-            try
+            buffer.Clear();
+            tweenManager.GetComponentsInChildren(true, buffer);
+            if (!buffer.ToImmutableHashSet().SetEquals(list))
             {
-                tweenManager.GetComponentsInChildren(true, _textsBuffer);
-                if (!_textsBuffer.ToImmutableHashSet().SetEquals(tweenManager.Texts))
+                if (GUILayout.Button(buttonText, EditorStyles.miniButton))
                 {
-                    if (GUILayout.Button("Sync Texts", EditorStyles.miniButton))
-                    {
-                        tweenManager.Texts.Clear();
-                        tweenManager.Texts.AddRange(_textsBuffer);
-                    }
+                    list.Clear();
+                    list.AddRange(buffer);
                 }
-
-                tweenManager.GetComponentsInChildren(true, _modifiersBuffer);
-                if (!_modifiersBuffer.ToImmutableHashSet().SetEquals(tweenManager.Modifiers))
-                {
-                    if (GUILayout.Button("Sync Modifiers", EditorStyles.miniButton))
-                    {
-                        tweenManager.Modifiers.Clear();
-                        tweenManager.Modifiers.AddRange(_modifiersBuffer);
-                    }
-                }
-            }
-            finally
-            {
-                EditorGUILayout.EndHorizontal();
             }
         }
 
