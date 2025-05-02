@@ -1,11 +1,11 @@
 namespace TextTween.Editor
 {
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Linq;
     using TMPro;
     using UnityEditor;
     using UnityEngine;
+    using Utilities;
 
     [CustomEditor(typeof(TextTweenManager))]
     public class TextDataManagerInspector : Editor
@@ -19,6 +19,12 @@ namespace TextTween.Editor
 
         private readonly List<TMP_Text> _textsBuffer = new();
         private readonly List<CharModifier> _modifiersBuffer = new();
+
+        private readonly HashSet<TMP_Text> _currentTextDuplicateBuffer = new();
+        private readonly HashSet<TMP_Text> _changeTextDuplicateBuffer = new();
+
+        private readonly HashSet<CharModifier> _currentModifiersDuplicateBuffer = new();
+        private readonly HashSet<CharModifier> _changeModifiersDuplicateBuffer = new();
 
         private GUIStyle _impactButtonStyle;
 
@@ -80,45 +86,38 @@ namespace TextTween.Editor
 
         private void RenderInvalidButtons(TextTweenManager tweenManager)
         {
-            EditorGUILayout.BeginHorizontal();
-            try
+            using (new HorizontalLayoutGroup(this))
             {
                 CheckAndRemoveNulls(tweenManager.Texts, "Remove Null Texts");
                 CheckAndRemoveNulls(tweenManager.Modifiers, "Remove Null Modifiers");
             }
-            finally
-            {
-                EditorGUILayout.EndHorizontal();
-            }
-
-            EditorGUILayout.BeginHorizontal();
-            try
+            using (new HorizontalLayoutGroup(this))
             {
                 CheckAndRemoveDuplicates(tweenManager.Texts, "Remove Duplicate Texts");
                 CheckAndRemoveDuplicates(tweenManager.Modifiers, "Remove Duplicate Modifiers");
-            }
-            finally
-            {
-                EditorGUILayout.EndHorizontal();
             }
         }
 
         private void RenderSyncButtons(TextTweenManager tweenManager)
         {
-            EditorGUILayout.BeginHorizontal();
-            try
+            using (new HorizontalLayoutGroup(this))
             {
-                CheckAndSync(tweenManager, _textsBuffer, tweenManager.Texts, "Sync Texts");
+                CheckAndSync(
+                    tweenManager,
+                    _textsBuffer,
+                    tweenManager.Texts,
+                    _currentTextDuplicateBuffer,
+                    _changeTextDuplicateBuffer,
+                    "Sync Texts"
+                );
                 CheckAndSync(
                     tweenManager,
                     _modifiersBuffer,
                     tweenManager.Modifiers,
+                    _currentModifiersDuplicateBuffer,
+                    _changeModifiersDuplicateBuffer,
                     "Sync Modifiers"
                 );
-            }
-            finally
-            {
-                EditorGUILayout.EndHorizontal();
             }
         }
 
@@ -171,13 +170,27 @@ namespace TextTween.Editor
             TextTweenManager tweenManager,
             List<T> buffer,
             List<T> list,
+            HashSet<T> currentDuplicateBuffer,
+            HashSet<T> changeDuplicateBuffer,
             string buttonText
         )
             where T : Object
         {
+            currentDuplicateBuffer.Clear();
+            foreach (T element in list)
+            {
+                currentDuplicateBuffer.Add(element);
+            }
+
             buffer.Clear();
             tweenManager.GetComponentsInChildren(true, buffer);
-            if (!buffer.ToImmutableHashSet().SetEquals(list))
+            changeDuplicateBuffer.Clear();
+            foreach (T element in buffer)
+            {
+                changeDuplicateBuffer.Add(element);
+            }
+
+            if (HasChanged(currentDuplicateBuffer, changeDuplicateBuffer))
             {
                 if (GUILayout.Button(buttonText, EditorStyles.miniButton))
                 {
@@ -196,7 +209,7 @@ namespace TextTween.Editor
         }
 
         private static IEnumerable<T> GetCurrentArrayValues<T>(SerializedProperty property)
-            where T : UnityEngine.Object
+            where T : Object
         {
             for (int i = 0; i < property.arraySize; i++)
             {
@@ -211,7 +224,7 @@ namespace TextTween.Editor
             Preference is to have non-garbage generating code (like this) in the OnGUI checks for maximum performance.
          */
         private static bool HasChanged<T>(List<T> previous, SerializedProperty property)
-            where T : UnityEngine.Object
+            where T : Object
         {
             if (property.arraySize != previous.Count)
             {
@@ -221,6 +234,25 @@ namespace TextTween.Editor
             for (int i = 0; i < property.arraySize; i++)
             {
                 if (previous[i] != property.GetArrayElementAtIndex(i).objectReferenceValue)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // No-alloc, specialized version of LINQ's SetEquals
+        private static bool HasChanged<T>(HashSet<T> previous, HashSet<T> change)
+        {
+            if (previous.Count != change.Count)
+            {
+                return true;
+            }
+
+            foreach (T item in change)
+            {
+                if (!previous.Contains(item))
                 {
                     return true;
                 }
