@@ -93,8 +93,16 @@ namespace TextTween.Editor
             }
             using (new HorizontalLayoutGroup(this))
             {
-                CheckAndRemoveDuplicates(tweenManager.Texts, "Remove Duplicate Texts");
-                CheckAndRemoveDuplicates(tweenManager.Modifiers, "Remove Duplicate Modifiers");
+                CheckAndRemoveDuplicates(
+                    tweenManager.Texts,
+                    _currentTextDuplicateBuffer,
+                    "Remove Duplicate Texts"
+                );
+                CheckAndRemoveDuplicates(
+                    tweenManager.Modifiers,
+                    _currentModifiersDuplicateBuffer,
+                    "Remove Duplicate Modifiers"
+                );
             }
         }
 
@@ -121,13 +129,23 @@ namespace TextTween.Editor
             }
         }
 
-        private void CheckAndRemoveDuplicates<T>(List<T> list, string buttonText)
+        private void CheckAndRemoveDuplicates<T>(
+            List<T> list,
+            HashSet<T> duplicateBuffer,
+            string buttonText
+        )
             where T : Object
         {
-            if (list.Distinct().Count() == list.Count)
+            duplicateBuffer.Clear();
+            foreach (T element in list)
+            {
+                duplicateBuffer.Add(element);
+            }
+            if (duplicateBuffer.Count == list.Count)
             {
                 return;
             }
+
             if (GUILayout.Button(buttonText, _impactButtonStyle))
             {
                 Dictionary<T, int> elementCounts = new();
