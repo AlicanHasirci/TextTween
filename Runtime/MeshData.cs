@@ -21,7 +21,7 @@ namespace TextTween
 
         public void Apply(MeshArray array)
         {
-            if (Text == null || Text.mesh == null || Text.text == null || Text.text.Length == 0)
+            if (Text == null || Text.mesh == null || string.IsNullOrEmpty(Text.text))
             {
                 return;
             }
