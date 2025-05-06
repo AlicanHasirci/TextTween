@@ -7,7 +7,6 @@ namespace TextTween
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Extensions;
     using TMPro;
     using Unity.Collections;
@@ -23,6 +22,8 @@ namespace TextTween
     [AddComponentMenu("TextTween/Text Tween Manager")]
     public class TextTweenManager : MonoBehaviour, IDisposable
     {
+        private static readonly TMP_Text[] OnChangeArguments = new TMP_Text[1];
+
         [Header("Tween Config")]
         [Range(0, 1f)]
         public float Progress;
@@ -80,7 +81,7 @@ namespace TextTween
             }
 
             Allocate();
-            CheckForMeshChanges(MeshData.Select(meshData => meshData.Text).ToArray());
+            CheckForMeshChanges(allTexts: true);
             Apply();
 
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(_onTextChange);
@@ -172,11 +173,12 @@ namespace TextTween
             }
 
             Allocate();
-            CheckForMeshChanges(obj as TMP_Text);
+            OnChangeArguments[0] = obj as TMP_Text;
+            CheckForMeshChanges(allTexts: false, OnChangeArguments);
             Apply();
         }
 
-        internal void CheckForMeshChanges(params TMP_Text[] textsToUpdate)
+        internal void CheckForMeshChanges(bool allTexts, params TMP_Text[] textsToUpdate)
         {
             for (int i = 0; i < MeshData.Count; i++)
             {
@@ -196,7 +198,7 @@ namespace TextTween
                 meshData.Update(
                     Original,
                     meshData.Offset,
-                    copyFrom: 0 <= Array.IndexOf(textsToUpdate, meshData.Text)
+                    copyFrom: allTexts || 0 <= Array.IndexOf(textsToUpdate, meshData.Text)
                 );
             }
         }
