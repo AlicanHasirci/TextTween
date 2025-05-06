@@ -7,6 +7,8 @@ namespace TextTween
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using Extensions;
     using TMPro;
     using Unity.Collections;
     using Unity.Jobs;
@@ -73,16 +75,11 @@ namespace TextTween
              */
             foreach (MeshData meshData in MeshData)
             {
-                if (meshData.Text != null)
-                {
-                    meshData.Text.ForceMeshUpdate(ignoreActiveState: true);
-                }
+                meshData.Text.EnsureArrayIntegrity();
             }
 
             Allocate();
-
-            CheckForMeshChanges();
-
+            CheckForMeshChanges(MeshData.Select(meshData => meshData.Text).ToArray());
             Apply();
 
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(_onTextChange);
@@ -99,10 +96,7 @@ namespace TextTween
         {
             foreach (TMP_Text text in Texts)
             {
-                if (text != null)
-                {
-                    text.ForceMeshUpdate(true);
-                }
+                text.EnsureArrayIntegrity();
             }
         }
 
@@ -123,6 +117,7 @@ namespace TextTween
                 return;
             }
 
+            tmp.EnsureArrayIntegrity();
             Allocate();
 
             MeshData last = TextTween.MeshData.Empty;
@@ -167,13 +162,11 @@ namespace TextTween
             }
 
             Allocate();
-
-            CheckForMeshChanges();
-
+            CheckForMeshChanges(obj as TMP_Text);
             Apply();
         }
 
-        internal void CheckForMeshChanges()
+        internal void CheckForMeshChanges(params TMP_Text[] textsToUpdate)
         {
             for (int i = 0; i < MeshData.Count; i++)
             {
@@ -189,7 +182,12 @@ namespace TextTween
                     int to = from + delta;
                     Move(from, to, MeshData[^1].Trail - from).Complete();
                 }
-                meshData.Update(Original, meshData.Offset);
+
+                meshData.Update(
+                    Original,
+                    meshData.Offset,
+                    copyFrom: 0 <= Array.IndexOf(textsToUpdate, meshData.Text)
+                );
             }
         }
 
