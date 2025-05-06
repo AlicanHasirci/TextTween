@@ -65,10 +65,6 @@ namespace TextTween.Editor
 
                 foreach (TMP_Text o in remove)
                 {
-                    if (o == null)
-                    {
-                        continue;
-                    }
                     _manager.Remove(o);
                 }
                 foreach (TMP_Text o in add)
