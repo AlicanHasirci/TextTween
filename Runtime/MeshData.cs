@@ -21,7 +21,7 @@ namespace TextTween
 
         public void Apply(MeshArray array)
         {
-            if (Text == null || Text.mesh == null || Text.text.Length == 0)
+            if (Text == null || Text.mesh == null || string.IsNullOrEmpty(Text.text))
             {
                 return;
             }
@@ -29,10 +29,14 @@ namespace TextTween
             array.CopyTo(Text, Offset, Length);
         }
 
-        public void Update(MeshArray meshArray, int offset)
+        public void Update(MeshArray meshArray, int offset, bool copyFrom = true)
         {
             int length = Text.GetVertexCount();
-            meshArray.CopyFrom(Text, length, offset);
+            if (copyFrom)
+            {
+                meshArray.CopyFrom(Text, offset, length);
+            }
+
             Offset = offset;
             Length = length;
         }

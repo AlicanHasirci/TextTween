@@ -6,6 +6,7 @@ namespace TextTween
     using Unity.Collections;
     using Unity.Jobs;
     using Unity.Mathematics;
+    using UnityEngine;
     using Utilities;
 
     public class MeshArray : IDisposable
@@ -82,27 +83,31 @@ namespace TextTween
             _uvs2.CopyFrom(source._uvs2);
         }
 
-        public void CopyFrom(TMP_Text text, int length, int offset)
+        public void CopyFrom(TMP_Text text, int offset, int length)
         {
-            text.mesh.vertices.MemCpy(_vertices, offset, length);
-            text.mesh.colors.MemCpy(_colors, offset, length);
-            text.mesh.uv.MemCpy(_uvs0, offset, length);
-            text.mesh.uv2.MemCpy(_uvs2, offset, length);
+            Mesh mesh = text.mesh;
+            mesh.vertices.MemCpy(_vertices, offset, length);
+            mesh.colors.MemCpy(_colors, offset, length);
+            mesh.uv.MemCpy(_uvs0, offset, length);
+            mesh.uv2.MemCpy(_uvs2, offset, length);
             CreateCharData(text, offset, length);
         }
 
         public void CopyTo(TMP_Text text, int offset, int length)
         {
-            text.mesh.SetVertices(_vertices, offset, length);
-            text.mesh.SetColors(_colors, offset, length);
-            text.mesh.SetUVs(0, _uvs0, offset, length);
-            text.mesh.SetUVs(1, _uvs2, offset, length);
+            Mesh mesh = text.mesh;
+            mesh.SetVertices(_vertices, offset, length);
+            mesh.SetColors(_colors, offset, length);
+            mesh.SetUVs(0, _uvs0, offset, length);
+            mesh.SetUVs(1, _uvs2, offset, length);
 
             TMP_MeshInfo[] meshInfos = text.textInfo.meshInfo;
             for (int j = 0; j < meshInfos.Length; j++)
             {
-                meshInfos[j].colors32 = text.mesh.colors32;
-                meshInfos[j].vertices = text.mesh.vertices;
+                TMP_MeshInfo meshInfo = meshInfos[j];
+                meshInfo.colors32 = mesh.colors32;
+                meshInfo.vertices = mesh.vertices;
+                meshInfos[j] = meshInfo;
             }
 
             text.UpdateVertexData(TMP_VertexDataUpdateFlags.All);
@@ -112,7 +117,7 @@ namespace TextTween
         {
             const int vertexPerChar = 4;
             TMP_CharacterInfo[] characterInfos = text.textInfo.characterInfo;
-            int charLength = characterInfos.Length;
+            int charLength = text.textInfo.characterCount;
             MinMaxAABB textBounds = new(text.textBounds.min, text.textBounds.max);
             for (int i = 0, ci = 0; i < length && ci < charLength; i++, ci = i / vertexPerChar)
             {
