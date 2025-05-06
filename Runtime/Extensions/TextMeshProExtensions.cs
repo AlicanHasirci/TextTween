@@ -1,5 +1,6 @@
 ﻿namespace TextTween.Extensions
 {
+    using System;
     using TMPro;
     using UnityEngine;
     using Utilities;
@@ -60,11 +61,7 @@
                 }
 
                 array = new T[vertexCount];
-                for (int i = 0; i < vertexCount; i++)
-                {
-                    array[i] = value;
-                }
-
+                Array.Fill(array, value);
                 wasModified = true;
                 return array;
             }
