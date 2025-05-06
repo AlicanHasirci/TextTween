@@ -1,6 +1,5 @@
 ﻿namespace TextTween.Extensions
 {
-    using System.Linq;
     using TMPro;
     using UnityEngine;
     using Utilities;
@@ -35,38 +34,17 @@
                 return;
             }
 
-            TMP_MeshInfo meshInfo = tmp.textInfo.meshInfo[0];
-
-            int vertexCount = tmp.GetVertexCount();
             bool wasModified = false;
-
-            Color[] colors = mesh.colors;
-            PopulateArrayIfNeeded(ref colors, tmp.color);
-            mesh.colors = colors;
-
-            Color32[] colors32 = mesh.colors32;
-            PopulateArrayIfNeeded(ref colors32, tmp.color);
-            mesh.colors32 = colors32;
-
-            Vector2[] uv = mesh.uv;
-            PopulateArrayIfNeeded(ref uv, Vector2.zero);
-            mesh.uv = uv;
-
-            Vector2[] uv2 = mesh.uv2;
-            PopulateArrayIfNeeded(ref uv2, Vector2.zero);
-            mesh.uv2 = uv2;
-
+            int vertexCount = tmp.GetVertexCount();
+            mesh.colors = PopulateArrayIfNeeded(mesh.colors, tmp.color);
+            mesh.colors32 = PopulateArrayIfNeeded(mesh.colors32, tmp.color);
+            mesh.uv = PopulateArrayIfNeeded(mesh.uv, Vector2.zero);
+            mesh.uv2 = PopulateArrayIfNeeded(mesh.uv2, Vector2.zero);
             if (!wasModified)
             {
                 return;
             }
 
-            meshInfo.colors32 = colors32.ToArray();
-            meshInfo.vertices = mesh.vertices.ToArray();
-            meshInfo.uvs0 = uv.ToArray();
-            meshInfo.uvs2 = uv2.ToArray();
-            tmp.textInfo.meshInfo[0] = meshInfo;
-            tmp.UpdateGeometry(mesh, 0);
             if (tmp is TextMeshProUGUI textMeshProUGUI && textMeshProUGUI.canvasRenderer != null)
             {
                 textMeshProUGUI.canvasRenderer.SetMesh(tmp.mesh);
@@ -74,11 +52,11 @@
 
             return;
 
-            void PopulateArrayIfNeeded<T>(ref T[] array, T value)
+            T[] PopulateArrayIfNeeded<T>(T[] array, T value)
             {
                 if (array?.Length == vertexCount)
                 {
-                    return;
+                    return array;
                 }
 
                 array = new T[vertexCount];
@@ -88,6 +66,7 @@
                 }
 
                 wasModified = true;
+                return array;
             }
         }
     }
