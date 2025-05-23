@@ -104,6 +104,7 @@ namespace TextTween
                 {
                     text.ForceMeshUpdate(true);
                 }
+                RemoveAgent(text);
             }
         }
 

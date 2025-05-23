@@ -17,6 +17,7 @@ namespace TextTween
         
         private void OnEnable()
         {
+            hideFlags = HideFlags.HideInInspector;
             _text = GetComponent<TMP_Text>();
         }
 
