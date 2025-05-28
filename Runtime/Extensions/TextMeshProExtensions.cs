@@ -36,6 +36,12 @@
             }
 
             bool wasModified = false;
+            /*
+                There is a strange issue in Unity 2022 where, for an initial, empty text,
+                vertex count = 4, mesh.vertices length will be 4, but the color and uv array
+                lengths will be 0. This causes a null reference exception when trying to
+                perform our internal operations, so let's "fix" the state if this is the case.
+             */
             int vertexCount = tmp.GetVertexCount();
             mesh.colors = PopulateArrayIfNeeded(mesh.colors, tmp.color);
             mesh.colors32 = PopulateArrayIfNeeded(mesh.colors32, tmp.color);

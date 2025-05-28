@@ -81,7 +81,7 @@ namespace TextTween
             }
 
             Allocate();
-            CheckForMeshChanges(allTexts: true);
+            CheckForMeshChanges();
             Apply();
 
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(_onTextChange);
@@ -98,8 +98,8 @@ namespace TextTween
         {
             foreach (TMP_Text text in Texts)
             {
-                RemoveAgent(text);
                 text.EnsureArrayIntegrity();
+                RemoveAgent(text);
             }
         }
 
@@ -119,10 +119,9 @@ namespace TextTween
             {
                 return;
             }
-            
-            AddAgent(tmp);
 
             tmp.EnsureArrayIntegrity();
+            AddAgent(tmp);
             Allocate();
 
             MeshData last = TextTween.MeshData.Empty;
@@ -151,7 +150,7 @@ namespace TextTween
             {
                 RemoveAgent(tmp);
             }
-            
+
             Texts.Remove(tmp);
             meshData.Apply(Original);
             MeshData.Remove(meshData);
@@ -173,12 +172,11 @@ namespace TextTween
             }
 
             Allocate();
-            OnChangeArguments[0] = obj as TMP_Text;
-            CheckForMeshChanges(allTexts: false, OnChangeArguments);
+            CheckForMeshChanges(obj as TMP_Text);
             Apply();
         }
 
-        internal void CheckForMeshChanges(bool allTexts, params TMP_Text[] textsToUpdate)
+        internal void CheckForMeshChanges(TMP_Text textToUpdate = null)
         {
             for (int i = 0; i < MeshData.Count; i++)
             {
@@ -198,7 +196,7 @@ namespace TextTween
                 meshData.Update(
                     Original,
                     meshData.Offset,
-                    copyFrom: allTexts || 0 <= Array.IndexOf(textsToUpdate, meshData.Text)
+                    copyFrom: textToUpdate == null || textToUpdate == meshData.Text
                 );
             }
         }
@@ -268,7 +266,7 @@ namespace TextTween
 
             return Original.Move(from, to, length, dependsOn);
         }
-        
+
         private void AddAgent(TMP_Text tmp)
         {
             if (!tmp.TryGetComponent(out TextTweenAgent agent))
@@ -280,7 +278,7 @@ namespace TextTween
 
         private static void RemoveAgent(TMP_Text tmp)
         {
-            if (tmp.TryGetComponent(out TextTweenAgent agent))
+            if (tmp != null && tmp.TryGetComponent(out TextTweenAgent agent))
             {
                 agent.Remove();
             }
