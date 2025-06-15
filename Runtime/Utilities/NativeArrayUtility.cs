@@ -142,6 +142,10 @@ namespace TextTween.Utilities
                 {
                     for (int i = 0; i < _length; i++)
                     {
+                        if (_to + i > _source.Length || _from + i > _source.Length)
+                        {
+                            return;
+                        }
                         _source[_to + i] = _source[_from + i];
                     }
                 }
@@ -149,6 +153,10 @@ namespace TextTween.Utilities
                 {
                     for (int i = _length - 1; i >= 0; i--)
                     {
+                        if (_to + i > _source.Length || _from + i > _source.Length)
+                        {
+                            continue;
+                        }
                         _source[_to + i] = _source[_from + i];
                     }
                 }
