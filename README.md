@@ -11,12 +11,44 @@
 - 🎮 Easy to integrate into existing Unity projects
 - 🧩 Lightweight and dependency-free (except TMP)
 
+## Compatibility
+
+| Unity Version | Compatible |
+| --- | --- |
+| 2021 | ? |
+| 2022 | &check; |
+| 6 | &check; |
+
+| Render Pipeline | Compatible |
+| --- | --- |
+| URP | &check; |
+| HDRP | &check; |
+
 ## 📦 Installation
 
+## Releases
+You can find `.unitypackage` bundles in the [Releases](https://github.com/AlicanHasirci/TextTween/releases/) section.
+
+## Package Manager - NPM
+You can add the package via the PackageManager via [NPM](https://www.npmjs.com/package/com.alicanhasirci.texttween)
+
+1. Open Unity Package Manager
+2. (Optional) Enable Pre-release packages to get the latest, cutting-edge builds
+3. Open the Advanced Package Settings
+4. Add an entry for a new "Scoped Registry"
+    - Name: `NPM`
+    - URL: `https://registry.npmjs.org`
+    - Scope(s): `com.alicanhasirci.texttween`
+5. Resolve the latest `com.alicanhasirci.texttween`
+
+## Package Manager - Git
 You can add the package via PackageManager with the URL:
-   ```
-   git@github.com:AlicanHasirci/TextTween.git
-   ```
+```
+git@github.com:AlicanHasirci/TextTween.git
+```
+
+## Raw
+Clone or [download](https://github.com/AlicanHasirci/TextTween/archive/refs/heads/main.zip) the repo and include in somewhere in your project's `Assets` folder. Recommendation is to group this and other libraries under a single `ThirdParty` folder for ease of identification.
 
 ## 🚀 Usage
 
@@ -73,5 +105,7 @@ Warps the lines of text according to intensity and curve provided over progress.
 | Ax16,250 | 170 | 97 | 212 |
 
 ## Contributing
+
+Please open issues if you encounter any problems!
 
 This project uses [CSharpier](https://csharpier.com/) with the default configuration to enable an enforced, consistent style. If you would like to contribute, recommendation is to ensure that changed files are ran through CSharpier prior to merge. This can be done automatically through editor plugins, or, minimally, by installing a [pre-commit hook](https://pre-commit.com/#3-install-the-git-hook-scripts)
